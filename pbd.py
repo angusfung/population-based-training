@@ -12,11 +12,18 @@ class Worker(object):
         self.score = None # current score
         self.pop_score = pop_score # reference to population statistics
         self.pop_params = pop_params
+        self.rms = 0 # for rmsprop
 
     def step(self):
         """one step of SGD with RMSProp"""
+        decay_rate = 0.9
+        alpha = 0.001
+        
         d_surrogate_obj = -2.0 * self.h * self.theta
-        self.theta -= d_surrogate_obj * 0.001
+        self.rms = decay_rate * self.rms + (1-decay_rate) * d_surrogate_obj**2
+        
+    
+        self.theta -= d_surrogate_obj * alpha
                         
     def eval(self):
         """metric we want to optimize e.g mean episodic return or validation set performance"""
@@ -58,7 +65,7 @@ def main():
         Worker(2, obj, surrogate_obj, np.array([0.,1.]), np.array([0.9, 0.9]), pop_score, pop_params),
         ]
         
-    for step in range(8000):
+    for step in range(200):
         for worker in population:
             
             worker.step() # one step of GD
