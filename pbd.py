@@ -17,12 +17,12 @@ class Worker(object):
     def step(self):
         """one step of SGD with RMSProp"""
         decay_rate = 0.9
-        alpha = 0.001
+        alpha = 0.01
+        eps = 1e-5
         
         d_surrogate_obj = -2.0 * self.h * self.theta
-        self.rms = decay_rate * self.rms + (1-decay_rate) * d_surrogate_obj**2
-        
-    
+        # self.rms = decay_rate * self.rms + (1-decay_rate) * d_surrogate_obj**2
+        # self.theta -= alpha * d_surrogate_obj / (np.sqrt(self.rms) + eps)
         self.theta -= d_surrogate_obj * alpha
                         
     def eval(self):
@@ -65,7 +65,7 @@ def main():
         Worker(2, obj, surrogate_obj, np.array([0.,1.]), np.array([0.9, 0.9]), pop_score, pop_params),
         ]
         
-    for step in range(200):
+    for step in range(500):
         for worker in population:
             
             worker.step() # one step of GD
@@ -77,6 +77,7 @@ def main():
                     worker.explore()
                     
             worker.update()
+
     print(pop_score)
     print(pop_params)
     
