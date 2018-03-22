@@ -2,6 +2,8 @@ import numpy as np
 import operator
 import matplotlib.pyplot as plt
 
+from matplotlib import rc
+
 class Worker(object):
     def __init__(self, idx, obj, surrogate_obj, h, theta, pop_score, pop_params):
         self.idx = idx
@@ -113,7 +115,12 @@ def plot_loss(run, i, steps, title):
     axes = plt.gca()
     axes.set_xlim([0,steps])
     axes.set_ylim([0.0, 1.21])
+    
     plt.title(title)
+    rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+    rc('text', usetext=True)
+    plt.xlabel('Step')
+    plt.ylabel(r'\mathcal{Q}')
     
 def plot_theta(run, i, steps, title):
     x_b = [_[0] for _ in run[0].theta_history]
