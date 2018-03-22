@@ -2,8 +2,6 @@ import numpy as np
 import operator
 import matplotlib.pyplot as plt
 
-from matplotlib import rc
-
 class Worker(object):
     def __init__(self, idx, obj, surrogate_obj, h, theta, pop_score, pop_params):
         self.idx = idx
@@ -41,7 +39,6 @@ class Worker(object):
     def eval(self):
         """metric we want to optimize e.g mean episodic return or validation set performance"""
         self.score = self.obj(self.theta)
-        self.val_performance = self.score / 1.2
         return self.score
         
     def exploit(self):
@@ -117,10 +114,8 @@ def plot_loss(run, i, steps, title):
     axes.set_ylim([0.0, 1.21])
     
     plt.title(title)
-    rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-    rc('text', usetext=True)
     plt.xlabel('Step')
-    plt.ylabel(r'\mathcal{Q}')
+    plt.ylabel('Q')
     
 def plot_theta(run, i, steps, title):
     x_b = [_[0] for _ in run[0].theta_history]
@@ -132,7 +127,10 @@ def plot_theta(run, i, steps, title):
     plt.subplot(2,4,i)
     plt.scatter(x_b, y_b, color='b', s=2)
     plt.scatter(x_r, y_r, color='r', s=2)
+    
     plt.title(title)
+    plt.xlabel('theta0')
+    plt.ylabel('theta1')
     
 def main():
 
