@@ -87,28 +87,24 @@ def run(steps=200, explore=True, exploit=True):
             
             if step % 10 == 0:
                 if explore and exploit:
-                    # print("1")
                     do_explore = worker.exploit()                
                     if do_explore:
                         worker.explore()
                         
                 elif explore and not exploit:
-                    # print("2")
-                    worker.exploit()
+                    worker.explore()
                 
                 elif not explore and exploit:
-                    # print("3")
                     worker.exploit()
                     
                 elif not explore and not exploit:
-                    # print("4")
                     pass
                     
             worker.update()
 
     return population
     
-def plot_loss(run, i, steps):
+def plot_loss(run, i, steps, title):
     
     plt.subplot(2,4,i)
     plt.plot(run[0].loss_history, color='b', lw=0.7)
@@ -117,8 +113,9 @@ def plot_loss(run, i, steps):
     axes = plt.gca()
     axes.set_xlim([0,steps])
     axes.set_ylim([0.0, 1.21])
+    plt.title(title)
     
-def plot_theta(run, i, steps):
+def plot_theta(run, i, steps, title):
     x_b = [_[0] for _ in run[0].theta_history]
     y_b = [_[1] for _ in run[0].theta_history]
     
@@ -126,25 +123,29 @@ def plot_theta(run, i, steps):
     y_r = [_[1] for _ in run[1].theta_history]
     
     plt.subplot(2,4,i)
-    plt.scatter(x_b, y_b, color='b')
-    plt.scatter(x_r, y_r, color='r')
+    plt.scatter(x_b, y_b, color='b', s=2)
+    plt.scatter(x_r, y_r, color='r', s=2)
+    plt.title(title)
     
 def main():
 
-    steps = 150
+    steps = 200
     
     run1 = run(steps=steps)
-    run2 = run(steps=steps, explore=False)
-    run3 = run(steps=steps, exploit=False)
+    run2 = run(steps=steps, exploit=False)
+    run3 = run(steps=steps, explore=False)
     run4 = run(steps=steps, exploit=False, explore=False)
     
     
-    plot_loss(run1, 1, steps=steps)
-    plot_loss(run2, 2, steps=steps)
-    plot_loss(run3, 3, steps=steps)
-    plot_loss(run4, 4, steps=steps)
+    plot_loss(run1, 3, steps=steps, title='PBT')
+    plot_loss(run2, 4, steps=steps, title='Explore only')
+    plot_loss(run3, 7, steps=steps, title='Exploit only')
+    plot_loss(run4, 8, steps=steps, title='Grid Search')
     
-    plot_theta(run1, 5, steps=steps)
+    plot_theta(run1, 1, steps=steps, title='PBT')
+    plot_theta(run2, 2, steps=steps, title='Explore only')
+    plot_theta(run3, 5, steps=steps, title='Exploit only')
+    plot_theta(run4, 6, steps=steps, title='Grid Search')
     
     plt.show()
     
