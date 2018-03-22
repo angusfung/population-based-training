@@ -13,6 +13,9 @@ class Worker(object):
         self.score = 0 # current score
         self.pop_score = pop_score # reference to population statistics
         self.pop_params = pop_params
+        
+        # for plotting
+        self.theta_history = []
         self.loss_history = []
         
         self.rms = 0 # for rmsprop
@@ -26,9 +29,6 @@ class Worker(object):
         eps = 1e-5
         
         d_surrogate_obj = -2.0 * self.h * self.theta
-        # print('h = {}'.format(self.h))
-        # print('t = {}'.format(self.theta))
-        # print(d_surrogate_obj[0])
         
         if vanilla:
             self.theta += d_surrogate_obj * alpha # ascent to maximize function
@@ -48,7 +48,7 @@ class Worker(object):
         if best_worker_idx != self.idx:
             best_worker_theta, best_worker_h = self.pop_params[best_worker_idx]
             self.theta = np.copy(best_worker_theta)
-            self.h = np.copy(best_worker_h)
+            # self.h = np.copy(best_worker_h)
             return True
         return False
         
@@ -61,6 +61,7 @@ class Worker(object):
         """update worker stats in global dictionary"""
         self.pop_score[self.idx] = self.score
         self.pop_params[self.idx] = (np.copy(self.theta), np.copy(self.h)) # np arrays are mutable
+        self.theta_history.append(np.copy(self.theta))
         self.loss_history.append(self.score)
 
 
@@ -84,49 +85,67 @@ def run(steps=200, explore=True, exploit=True):
             worker.step(vanilla=True) # one step of GD
             worker.eval() # evaluate current model
             
-            if step % 5 == 0:
+            if step % 10 == 0:
                 if explore and exploit:
+                    # print("1")
                     do_explore = worker.exploit()                
                     if do_explore:
                         worker.explore()
                         
                 elif explore and not exploit:
+                    # print("2")
                     worker.exploit()
                 
                 elif not explore and exploit:
+                    # print("3")
                     worker.exploit()
                     
                 elif not explore and not exploit:
+                    # print("4")
                     pass
                     
             worker.update()
 
     return population
     
-def plot(run, i, steps):
+def plot_loss(run, i, steps):
     
-    plt.subplot(2,2,i)
-    plt.plot(run[0].loss_history, color='k', lw=0.5)
-    plt.plot(run[1].loss_history, color='r', lw=0.5)
+    plt.subplot(2,4,i)
+    plt.plot(run[0].loss_history, color='b', lw=0.7)
+    plt.plot(run[1].loss_history, color='r', lw=0.7)
     plt.axhline(y=1.2, linestyle='dotted', color='k')
     axes = plt.gca()
     axes.set_xlim([0,steps])
     axes.set_ylim([0.0, 1.21])
     
+def plot_theta(run, i, steps):
+    x_b = [_[0] for _ in run[0].theta_history]
+    y_b = [_[1] for _ in run[0].theta_history]
+    
+    x_r = [_[0] for _ in run[1].theta_history]
+    y_r = [_[1] for _ in run[1].theta_history]
+    
+    plt.subplot(2,4,i)
+    plt.scatter(x_b, y_b, color='b')
+    plt.scatter(x_r, y_r, color='r')
+    
 def main():
 
-    steps = 200
+    steps = 150
     
-    # run1 = run(steps=steps)
-    #run2 = run(steps=steps, explore=False)
-    #run3 = run(steps=steps, exploit=False)
+    run1 = run(steps=steps)
+    run2 = run(steps=steps, explore=False)
+    run3 = run(steps=steps, exploit=False)
     run4 = run(steps=steps, exploit=False, explore=False)
     
     
-    # plot(run1, 1, steps=steps)
-    #plot(run2, 2, steps=steps)
-    #plot(run3, 3, steps=steps)
-    plot(run4, 4, steps=steps)
+    plot_loss(run1, 1, steps=steps)
+    plot_loss(run2, 2, steps=steps)
+    plot_loss(run3, 3, steps=steps)
+    plot_loss(run4, 4, steps=steps)
+    
+    plot_theta(run1, 5, steps=steps)
+    
     plt.show()
     
     
