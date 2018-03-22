@@ -3,7 +3,7 @@ import operator
 import matplotlib.pyplot as plt
 
 class Worker(object):
-    def __init__(self, idx, obj, surrogate_obj, theta, h, pop_score, pop_params):
+    def __init__(self, idx, obj, surrogate_obj, h, theta, pop_score, pop_params):
         self.idx = idx
         self.obj = obj
         self.surrogate_obj = surrogate_obj
@@ -26,6 +26,9 @@ class Worker(object):
         eps = 1e-5
         
         d_surrogate_obj = -2.0 * self.h * self.theta
+        # print('h = {}'.format(self.h))
+        # print('t = {}'.format(self.theta))
+        # print(d_surrogate_obj[0])
         
         if vanilla:
             self.theta += d_surrogate_obj * alpha # ascent to maximize function
@@ -57,10 +60,11 @@ class Worker(object):
     def update(self):
         """update worker stats in global dictionary"""
         self.pop_score[self.idx] = self.score
-        self.pop_params[self.idx] = (np.copy(self.theta), self.h) # np arrays are mutable
+        self.pop_params[self.idx] = (np.copy(self.theta), np.copy(self.h)) # np arrays are mutable
         self.loss_history.append(self.score)
-        
-def main():
+
+
+def run(steps=200, explore=True, exploit=True):
     # Q and Q_hat, as per fig. 2: https://arxiv.org/pdf/1711.09846.pdf
     obj = lambda theta: 1.2 - np.sum(theta**2)
     surrogate_obj = lambda theta, h: 1.2 - np.sum(h*theta**2)
@@ -73,30 +77,57 @@ def main():
         Worker(1, obj, surrogate_obj, np.array([1.,0.]), np.array([0.9, 0.9]), pop_score, pop_params),
         Worker(2, obj, surrogate_obj, np.array([0.,1.]), np.array([0.9, 0.9]), pop_score, pop_params),
         ]
-    
-    for step in range(100):
+        
+    for step in range(steps):
         for worker in population:
             
             worker.step(vanilla=True) # one step of GD
             worker.eval() # evaluate current model
             
             if step % 5 == 0:
-                do_explore = worker.exploit()                
-                if do_explore:
-                    worker.explore()
+                if explore and exploit:
+                    do_explore = worker.exploit()                
+                    if do_explore:
+                        worker.explore()
+                        
+                elif explore and not exploit:
+                    worker.exploit()
+                
+                elif not explore and exploit:
+                    worker.exploit()
+                    
+                elif not explore and not exploit:
+                    pass
                     
             worker.update()
-            
-    # print(population[0].loss_history[480:])
-    # plt.subplot(2,2,1)
-    # plt.plot(population[0].loss_history[480:])
-    # plt.plot(population[1].loss_history)
-    # axes = plt.gca()
-    # # axes.set_xlim([0,100])
-    # # axes.set_ylim([-1.2,1.2])
-    # plt.show()
-    
 
+    return population
+    
+def plot(run, i, steps):
+    
+    plt.subplot(2,2,i)
+    plt.plot(run[0].loss_history, color='k', lw=0.5)
+    plt.plot(run[1].loss_history, color='r', lw=0.5)
+    plt.axhline(y=1.2, linestyle='dotted', color='k')
+    axes = plt.gca()
+    axes.set_xlim([0,steps])
+    axes.set_ylim([0.0, 1.21])
+    
+def main():
+
+    steps = 200
+    
+    # run1 = run(steps=steps)
+    #run2 = run(steps=steps, explore=False)
+    #run3 = run(steps=steps, exploit=False)
+    run4 = run(steps=steps, exploit=False, explore=False)
+    
+    
+    # plot(run1, 1, steps=steps)
+    #plot(run2, 2, steps=steps)
+    #plot(run3, 3, steps=steps)
+    plot(run4, 4, steps=steps)
+    plt.show()
     
     
 if __name__ == '__main__':
