@@ -12,7 +12,7 @@ The reproduced plots are seen below:
 Some key observations: 
 * Theta Plots
    * In *Exploit only*, the intersection of the workers represents the inheritance of best weights from one worker to the other; this occurs every `10` steps (set by the user)
-   * In *Explore only*, we don't see any intersections as expected. Each point follows closely from the last from random perturbations and gradient descent steps
+   * In *Explore only*, we don't see any intersections. Each point follows closely from the last from random perturbations and gradient descent steps
    * In *PBT*, we see the combination of the aformentioned effects
 * `Q` Plots
    * The *Grid search* plot never converges to `1.2` due to bad initialization. As the hyperparameters are **fixed** during the entire training, `Worker1` with `h=[1 0]` and `Worker2` with `h=[0 1]`, the surrogate function will never converge to the real function with `h=[1 1]`. This illustrates the shortcomings of grid-search, which can limit the generalization capabilities of a model (especically with bad initializations).
