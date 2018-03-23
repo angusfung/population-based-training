@@ -11,7 +11,7 @@ The reproduced plots are seen below:
 ![alt text](https://github.com/angusfung/population-based-training/blob/master/plots.png)
 Some key observations: 
 * Theta Plots
-   * In *Exploit only*, the intersection of each worker represents when one worker inherits the best weight from the other; this occurs every `10` steps (set by the user)
+   * In *Exploit only*, the intersection of the workers represents the inheritance of best weights from one worker to the other; this occurs every `10` steps (set by the user)
    * In *Explore only*, we don't see any intersections as expected. Each point follows closely from the last from random perturbations and gradient descent steps
    * In *PBT*, we see the combination of the aformentioned effects
 * `Q` Plots
