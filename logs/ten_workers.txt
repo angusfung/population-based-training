@@ -1,0 +1,387 @@
+Beginning Worker-0
+Beginning Worker-1
+Beginning Worker-2
+Beginning Worker-3
+Beginning Worker-4
+Beginning Worker-5
+Beginning Worker-6
+Beginning Worker-7
+Beginning Worker-8
+Beginning Worker-9
+Worker-0 Step 10 Q = 0.49 (40.83%)
+Worker-0 Step 20 Q = 0.23 (19.16%)
+Worker-0 Step 30 Q = -0.13 (-10.43%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 40 Q = -2.80 (-233.32%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 50 Q = -2.71 (-225.61%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 60 Q = -2.89 (-240.47%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 70 Q = -2.96 (-246.92%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 80 Q = -2.99 (-249.39%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 90 Q = -3.10 (-258.09%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 100 Q = -3.06 (-255.06%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 110 Q = -2.98 (-248.37%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 120 Q = -2.99 (-249.06%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 130 Q = -3.13 (-260.90%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 140 Q = -3.17 (-263.85%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 150 Q = -3.22 (-268.46%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 160 Q = -3.15 (-262.36%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 170 Q = -3.03 (-252.81%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 180 Q = -3.00 (-250.09%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 190 Q = -3.02 (-251.64%)
+Worker-0 Inherited optimal weights from Worker-1
+Worker-0 Step 200 Q = -3.07 (-255.95%)
+Worker-3 Inherited optimal weights from Worker-1
+Worker-3 Step 10 Q = -1.55 (-128.89%)
+Worker-3 Inherited optimal weights from Worker-1
+Worker-3 Step 20 Q = -1.57 (-130.83%)
+Worker-3 Inherited optimal weights from Worker-1
+Worker-3 Step 30 Q = -1.68 (-139.94%)
+Worker-3 Inherited optimal weights from Worker-1
+Worker-1 Step 10 Q = -2.72 (-226.29%)
+Worker-1 Inherited optimal weights from Worker-2
+Worker-3 Step 40 Q = -1.61 (-133.79%)
+Worker-3 Inherited optimal weights from Worker-2
+Worker-1 Step 20 Q = -3.74 (-311.82%)
+Worker-1 Inherited optimal weights from Worker-2
+Worker-3 Step 50 Q = -2.39 (-198.83%)
+Worker-3 Inherited optimal weights from Worker-2
+Worker-1 Step 30 Q = -3.49 (-290.44%)
+Worker-1 Inherited optimal weights from Worker-2
+Worker-3 Step 60 Q = -2.27 (-189.57%)
+Worker-3 Inherited optimal weights from Worker-2
+Worker-9 Inherited optimal weights from Worker-2
+Worker-5 Inherited optimal weights from Worker-2
+Worker-1 Step 40 Q = -3.66 (-305.01%)
+Worker-1 Inherited optimal weights from Worker-2
+Worker-8 Inherited optimal weights from Worker-2
+Worker-3 Step 70 Q = -2.15 (-178.78%)
+Worker-3 Inherited optimal weights from Worker-2
+Worker-9 Step 10 Q = -1.65 (-137.56%)
+Worker-9 Inherited optimal weights from Worker-2
+Worker-7 Inherited optimal weights from Worker-2
+Worker-5 Step 10 Q = -3.08 (-256.76%)
+Worker-5 Inherited optimal weights from Worker-2
+Worker-1 Step 50 Q = -3.92 (-326.92%)
+Worker-6 Inherited optimal weights from Worker-2
+Worker-1 Inherited optimal weights from Worker-2
+Worker-8 Step 10 Q = -4.56 (-379.83%)
+Worker-8 Inherited optimal weights from Worker-4
+Worker-7 Step 10 Q = -2.84 (-236.53%)
+Worker-9 Step 20 Q = -1.62 (-134.66%)
+Worker-7 Inherited optimal weights from Worker-8
+Worker-2 Step 10 Q = -1.45 (-121.19%)
+Worker-9 Inherited optimal weights from Worker-4
+Worker-5 Step 20 Q = -3.08 (-256.53%)
+Worker-2 Inherited optimal weights from Worker-7
+Worker-4 Step 10 Q = 0.39 (32.24%)
+Worker-1 Step 60 Q = -3.76 (-313.09%)
+Worker-5 Inherited optimal weights from Worker-7
+Worker-6 Step 10 Q = -2.86 (-238.68%)
+Worker-8 Step 20 Q = 0.60 (49.88%)
+Worker-1 Inherited optimal weights from Worker-2
+Worker-4 Inherited optimal weights from Worker-7
+Worker-6 Inherited optimal weights from Worker-7
+Worker-8 Inherited optimal weights from Worker-9
+Worker-7 Step 20 Q = 0.62 (51.62%)
+Worker-2 Step 20 Q = 0.73 (60.45%)
+Worker-9 Step 30 Q = 0.68 (56.66%)
+Worker-7 Inherited optimal weights from Worker-2
+Worker-9 Inherited optimal weights from Worker-2
+Worker-5 Step 30 Q = 0.43 (35.42%)
+Worker-3 Step 80 Q = -2.18 (-181.52%)
+Worker-1 Step 70 Q = -2.26 (-188.16%)
+Worker-4 Step 20 Q = 0.41 (34.14%)
+Worker-8 Step 30 Q = 0.49 (40.88%)
+Worker-3 Inherited optimal weights from Worker-6
+Worker-5 Inherited optimal weights from Worker-6
+Worker-6 Step 20 Q = 0.68 (57.03%)
+Worker-4 Inherited optimal weights from Worker-2
+Worker-8 Inherited optimal weights from Worker-2
+Worker-6 Inherited optimal weights from Worker-2
+Worker-1 Inherited optimal weights from Worker-2
+Worker-7 Step 30 Q = 0.67 (55.67%)
+Worker-7 Inherited optimal weights from Worker-2
+Worker-2 Step 30 Q = 0.83 (68.90%)
+Worker-3 Step 90 Q = 0.74 (61.36%)
+Worker-3 Inherited optimal weights from Worker-2
+Worker-4 Step 30 Q = 0.53 (43.75%)
+Worker-9 Step 40 Q = 0.82 (68.59%)
+Worker-6 Step 30 Q = 0.83 (68.91%)
+Worker-4 Inherited optimal weights from Worker-2
+Worker-9 Inherited optimal weights from Worker-2
+Worker-8 Step 40 Q = 0.67 (55.65%)
+Worker-1 Step 80 Q = 0.53 (44.54%)
+Worker-6 Inherited optimal weights from Worker-2
+Worker-5 Step 40 Q = 0.53 (44.02%)
+Worker-1 Inherited optimal weights from Worker-2
+Worker-8 Inherited optimal weights from Worker-2
+Worker-5 Inherited optimal weights from Worker-2
+Worker-7 Step 40 Q = 0.77 (63.84%)
+Worker-7 Inherited optimal weights from Worker-9
+Worker-3 Step 100 Q = 0.88 (73.40%)
+Worker-9 Step 50 Q = 0.94 (78.74%)
+Worker-3 Inherited optimal weights from Worker-9
+Worker-4 Step 40 Q = 0.75 (62.52%)
+Worker-1 Step 90 Q = 0.66 (54.67%)
+Worker-2 Step 40 Q = 0.90 (74.92%)
+Worker-8 Step 50 Q = 0.86 (71.68%)
+Worker-4 Inherited optimal weights from Worker-9
+Worker-5 Step 50 Q = 0.70 (58.65%)
+Worker-1 Inherited optimal weights from Worker-9
+Worker-2 Inherited optimal weights from Worker-9
+Worker-8 Inherited optimal weights from Worker-9
+Worker-6 Step 40 Q = 0.92 (76.47%)
+Worker-7 Step 50 Q = 0.85 (71.24%)
+Worker-5 Inherited optimal weights from Worker-9
+Worker-7 Inherited optimal weights from Worker-9
+Worker-6 Inherited optimal weights from Worker-9
+Worker-9 Step 60 Q = 1.03 (85.97%)
+Worker-1 Step 100 Q = 0.82 (68.68%)
+Worker-4 Step 50 Q = 0.86 (71.79%)
+Worker-8 Step 60 Q = 0.98 (81.99%)
+Worker-4 Inherited optimal weights from Worker-9
+Worker-8 Inherited optimal weights from Worker-6
+Worker-1 Inherited optimal weights from Worker-6
+Worker-3 Step 110 Q = 0.92 (76.85%)
+Worker-2 Step 50 Q = 0.93 (77.63%)
+Worker-5 Step 60 Q = 0.91 (75.84%)
+Worker-3 Inherited optimal weights from Worker-6
+Worker-2 Inherited optimal weights from Worker-6
+Worker-5 Inherited optimal weights from Worker-6
+Worker-6 Step 50 Q = 1.05 (87.23%)
+Worker-7 Step 60 Q = 0.98 (81.43%)
+Worker-7 Inherited optimal weights from Worker-8
+Worker-8 Step 70 Q = 1.04 (86.36%)
+Worker-9 Step 70 Q = 1.09 (90.71%)
+Worker-4 Step 60 Q = 0.91 (76.14%)
+Worker-3 Step 120 Q = 1.02 (85.40%)
+Worker-5 Step 70 Q = 0.93 (77.50%)
+Worker-4 Inherited optimal weights from Worker-9
+Worker-2 Step 60 Q = 1.04 (86.58%)
+Worker-3 Inherited optimal weights from Worker-9
+Worker-6 Step 60 Q = 1.09 (90.91%)
+Worker-5 Inherited optimal weights from Worker-9
+Worker-2 Inherited optimal weights from Worker-9
+Worker-6 Inherited optimal weights from Worker-9
+Worker-1 Step 110 Q = 0.78 (64.81%)
+Worker-7 Step 70 Q = 1.02 (85.03%)
+Worker-7 Inherited optimal weights from Worker-9
+Worker-1 Inherited optimal weights from Worker-9
+Worker-9 Step 80 Q = 1.13 (93.83%)
+Worker-4 Step 70 Q = 0.92 (76.90%)
+Worker-3 Step 130 Q = 1.02 (85.22%)
+Worker-9 Inherited optimal weights from Worker-6
+Worker-8 Step 80 Q = 1.02 (84.92%)
+Worker-2 Step 70 Q = 1.02 (85.37%)
+Worker-3 Inherited optimal weights from Worker-6
+Worker-4 Inherited optimal weights from Worker-6
+Worker-8 Inherited optimal weights from Worker-6
+Worker-2 Inherited optimal weights from Worker-6
+Worker-5 Step 80 Q = 0.91 (75.86%)
+Worker-6 Step 70 Q = 1.13 (94.48%)
+Worker-1 Step 120 Q = 1.06 (87.97%)
+Worker-6 Inherited optimal weights from Worker-9
+Worker-5 Inherited optimal weights from Worker-2
+Worker-1 Inherited optimal weights from Worker-9
+Worker-9 Step 90 Q = 1.15 (95.71%)
+Worker-8 Step 90 Q = 1.14 (94.74%)
+Worker-9 Inherited optimal weights from Worker-2
+Worker-2 Step 80 Q = 1.14 (95.17%)
+Worker-8 Inherited optimal weights from Worker-6
+Worker-3 Step 140 Q = 1.14 (95.17%)
+Worker-7 Step 80 Q = 1.10 (91.91%)
+Worker-4 Step 80 Q = 1.10 (92.04%)
+Worker-2 Inherited optimal weights from Worker-6
+Worker-6 Step 80 Q = 1.14 (95.09%)
+Worker-3 Inherited optimal weights from Worker-9
+Worker-5 Step 90 Q = 0.96 (79.83%)
+Worker-7 Inherited optimal weights from Worker-9
+Worker-1 Step 130 Q = 1.10 (91.98%)
+Worker-4 Inherited optimal weights from Worker-9
+Worker-5 Inherited optimal weights from Worker-9
+Worker-6 Inherited optimal weights from Worker-3
+Worker-1 Inherited optimal weights from Worker-3
+Worker-8 Step 100 Q = 1.01 (84.25%)
+Worker-9 Step 100 Q = 1.15 (96.24%)
+Worker-8 Inherited optimal weights from Worker-3
+Worker-9 Inherited optimal weights from Worker-3
+Worker-2 Step 90 Q = 1.03 (86.16%)
+Worker-7 Step 90 Q = 1.15 (95.43%)
+Worker-4 Step 90 Q = 1.12 (93.52%)
+Worker-2 Inherited optimal weights from Worker-9
+Worker-7 Inherited optimal weights from Worker-9
+Worker-5 Step 100 Q = 1.12 (93.47%)
+Worker-4 Inherited optimal weights from Worker-9
+Worker-1 Step 140 Q = 0.88 (73.27%)
+Worker-6 Step 90 Q = 1.04 (87.06%)
+Worker-5 Inherited optimal weights from Worker-3
+Worker-1 Inherited optimal weights from Worker-3
+Worker-6 Inherited optimal weights from Worker-3
+Worker-3 Step 150 Q = 1.16 (96.52%)
+Worker-8 Step 110 Q = 1.00 (83.56%)
+Worker-8 Inherited optimal weights from Worker-3
+Worker-2 Step 100 Q = 1.03 (85.47%)
+Worker-9 Step 110 Q = 1.05 (87.50%)
+Worker-2 Inherited optimal weights from Worker-3
+Worker-7 Step 100 Q = 0.98 (81.29%)
+Worker-4 Step 100 Q = 0.92 (76.40%)
+Worker-1 Step 150 Q = 0.88 (72.96%)
+Worker-7 Inherited optimal weights from Worker-3
+Worker-9 Inherited optimal weights from Worker-3
+Worker-4 Inherited optimal weights from Worker-3
+Worker-6 Step 100 Q = 1.05 (87.81%)
+Worker-1 Inherited optimal weights from Worker-3
+Worker-5 Step 110 Q = 0.90 (75.29%)
+Worker-6 Inherited optimal weights from Worker-3
+Worker-5 Inherited optimal weights from Worker-3
+Worker-2 Step 110 Q = 1.04 (86.40%)
+Worker-8 Step 120 Q = 1.01 (83.77%)
+Worker-8 Inherited optimal weights from Worker-3
+Worker-3 Step 160 Q = 1.17 (97.15%)
+Worker-9 Step 120 Q = 1.04 (86.95%)
+Worker-1 Step 160 Q = 0.87 (72.80%)
+Worker-9 Inherited optimal weights from Worker-3
+Worker-4 Step 110 Q = 0.92 (76.32%)
+Worker-1 Inherited optimal weights from Worker-3
+Worker-2 Inherited optimal weights from Worker-3
+Worker-6 Step 110 Q = 1.06 (87.97%)
+Worker-4 Inherited optimal weights from Worker-3
+Worker-6 Inherited optimal weights from Worker-3
+Worker-7 Step 110 Q = 0.98 (81.36%)
+Worker-7 Inherited optimal weights from Worker-3
+Worker-8 Step 130 Q = 1.17 (97.14%)
+Worker-8 Inherited optimal weights from Worker-3
+Worker-1 Step 170 Q = 1.15 (95.63%)
+Worker-9 Step 130 Q = 1.17 (97.40%)
+Worker-3 Step 170 Q = 1.17 (97.67%)
+Worker-1 Inherited optimal weights from Worker-6
+Worker-9 Inherited optimal weights from Worker-3
+Worker-5 Step 120 Q = 0.90 (75.08%)
+Worker-4 Step 120 Q = 1.15 (95.53%)
+Worker-6 Step 120 Q = 1.17 (97.72%)
+Worker-5 Inherited optimal weights from Worker-6
+Worker-6 Inherited optimal weights from Worker-3
+Worker-4 Inherited optimal weights from Worker-3
+Worker-7 Step 120 Q = 1.16 (96.47%)
+Worker-7 Inherited optimal weights from Worker-3
+Worker-2 Step 120 Q = 1.17 (97.76%)
+Worker-1 Step 180 Q = 1.15 (96.06%)
+Worker-8 Step 140 Q = 1.17 (97.18%)
+Worker-2 Inherited optimal weights from Worker-9
+Worker-9 Step 140 Q = 1.18 (98.18%)
+Worker-1 Inherited optimal weights from Worker-6
+Worker-9 Inherited optimal weights from Worker-6
+Worker-8 Inherited optimal weights from Worker-6
+Worker-3 Step 180 Q = 1.18 (98.09%)
+Worker-4 Step 130 Q = 1.16 (96.66%)
+Worker-6 Step 130 Q = 1.18 (98.28%)
+Worker-5 Step 130 Q = 0.92 (76.44%)
+Worker-4 Inherited optimal weights from Worker-3
+Worker-7 Step 130 Q = 1.17 (97.34%)
+Worker-5 Inherited optimal weights from Worker-3
+Worker-6 Inherited optimal weights from Worker-3
+Worker-7 Inherited optimal weights from Worker-2
+Worker-2 Step 130 Q = 1.18 (98.46%)
+Worker-2 Inherited optimal weights from Worker-9
+Worker-1 Step 190 Q = 1.16 (96.42%)
+Worker-4 Step 140 Q = 1.17 (97.41%)
+Worker-1 Inherited optimal weights from Worker-2
+Worker-6 Step 140 Q = 1.18 (98.29%)
+Worker-4 Inherited optimal weights from Worker-2
+Worker-6 Inherited optimal weights from Worker-2
+Worker-5 Step 140 Q = 1.17 (97.09%)
+Worker-5 Inherited optimal weights from Worker-6
+Worker-7 Step 140 Q = 1.18 (98.19%)
+Worker-8 Step 150 Q = 1.18 (98.28%)
+Worker-9 Step 150 Q = 1.18 (98.43%)
+Worker-7 Inherited optimal weights from Worker-6
+Worker-9 Inherited optimal weights from Worker-6
+Worker-2 Step 140 Q = 1.18 (98.54%)
+Worker-8 Inherited optimal weights from Worker-2
+Worker-1 Step 200 Q = 1.16 (97.04%)
+Worker-4 Step 150 Q = 1.17 (97.80%)
+Worker-4 Inherited optimal weights from Worker-2
+Worker-6 Step 150 Q = 1.19 (98.82%)
+Worker-5 Step 150 Q = 1.16 (96.78%)
+Worker-3 Step 190 Q = 1.18 (98.43%)
+Worker-9 Step 160 Q = 1.18 (98.43%)
+Worker-7 Step 150 Q = 1.18 (98.42%)
+Worker-5 Inherited optimal weights from Worker-2
+Worker-3 Inherited optimal weights from Worker-2
+Worker-7 Inherited optimal weights from Worker-8
+Worker-2 Step 150 Q = 1.19 (98.84%)
+Worker-9 Inherited optimal weights from Worker-8
+Worker-2 Inherited optimal weights from Worker-8
+Worker-8 Step 160 Q = 1.19 (98.83%)
+Worker-8 Inherited optimal weights from Worker-6
+Worker-4 Step 160 Q = 1.17 (97.80%)
+Worker-6 Step 160 Q = 1.19 (99.23%)
+Worker-5 Step 160 Q = 1.17 (97.47%)
+Worker-3 Step 200 Q = 1.18 (98.56%)
+Worker-7 Step 160 Q = 1.18 (98.73%)
+Worker-4 Inherited optimal weights from Worker-6
+Worker-2 Step 160 Q = 1.19 (98.89%)
+Worker-9 Step 170 Q = 1.19 (99.08%)
+Worker-5 Inherited optimal weights from Worker-6
+Worker-7 Inherited optimal weights from Worker-6
+Worker-2 Inherited optimal weights from Worker-6
+Worker-8 Step 170 Q = 1.19 (99.33%)
+Worker-9 Inherited optimal weights from Worker-6
+Worker-8 Inherited optimal weights from Worker-6
+Worker-6 Step 170 Q = 1.19 (99.50%)
+Worker-4 Step 170 Q = 1.19 (98.94%)
+Worker-7 Step 170 Q = 1.19 (99.44%)
+Worker-4 Inherited optimal weights from Worker-6
+Worker-5 Step 170 Q = 1.19 (98.91%)
+Worker-7 Inherited optimal weights from Worker-6
+Worker-2 Step 170 Q = 1.19 (99.52%)
+Worker-5 Inherited optimal weights from Worker-6
+Worker-8 Step 180 Q = 1.19 (99.54%)
+Worker-2 Inherited optimal weights from Worker-6
+Worker-6 Step 180 Q = 1.20 (99.67%)
+Worker-8 Inherited optimal weights from Worker-6
+Worker-9 Step 180 Q = 1.19 (99.57%)
+Worker-7 Step 180 Q = 1.19 (99.57%)
+Worker-4 Step 180 Q = 1.19 (99.48%)
+Worker-5 Step 180 Q = 1.19 (99.34%)
+Worker-4 Inherited optimal weights from Worker-6
+Worker-7 Inherited optimal weights from Worker-6
+Worker-9 Inherited optimal weights from Worker-6
+Worker-5 Inherited optimal weights from Worker-6
+Worker-2 Step 180 Q = 1.20 (99.61%)
+Worker-2 Inherited optimal weights from Worker-6
+Worker-8 Step 190 Q = 1.20 (99.64%)
+Worker-6 Step 190 Q = 1.20 (99.79%)
+Worker-8 Inherited optimal weights from Worker-6
+Worker-5 Step 190 Q = 1.19 (99.32%)
+Worker-4 Step 190 Q = 1.20 (99.60%)
+Worker-7 Step 190 Q = 1.20 (99.70%)
+Worker-5 Inherited optimal weights from Worker-6
+Worker-9 Step 190 Q = 1.20 (99.65%)
+Worker-7 Inherited optimal weights from Worker-6
+Worker-4 Inherited optimal weights from Worker-6
+Worker-9 Inherited optimal weights from Worker-6
+Worker-2 Step 190 Q = 1.20 (99.63%)
+Worker-2 Inherited optimal weights from Worker-6
+Worker-6 Step 200 Q = 1.20 (99.86%)
+Worker-5 Step 200 Q = 1.20 (99.69%)
+Worker-8 Step 200 Q = 1.20 (99.66%)
+Worker-4 Step 200 Q = 1.20 (99.73%)
+Worker-9 Step 200 Q = 1.20 (99.84%)
+Worker-2 Step 200 Q = 1.20 (99.83%)
+Worker-7 Step 200 Q = 1.20 (99.80%)
