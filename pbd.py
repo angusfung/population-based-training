@@ -3,10 +3,13 @@
 import numpy as np
 import operator
 import matplotlib.pyplot as plt
+import logging
 
 class Worker(object):
     def __init__(self, idx, obj, surrogate_obj, h, theta, pop_score, pop_params):
         self.idx = idx
+        self.logger = logging.getLogger("Worker-{}".format(self.idx))
+        
         self.obj = obj
         self.surrogate_obj = surrogate_obj
         self.theta = theta
@@ -18,7 +21,7 @@ class Worker(object):
         
         # for plotting
         self.theta_history = []
-        self.loss_history = []
+        self.Q_history = []
         
         self.rms = 0 # for rmsprop
         
@@ -49,12 +52,12 @@ class Worker(object):
         if best_worker_idx != self.idx:
             best_worker_theta, best_worker_h = self.pop_params[best_worker_idx]
             self.theta = np.copy(best_worker_theta)
-            # self.h = np.copy(best_worker_h)
+            self.logger.info("Inherited optimal weights from Worker-{}".format(best_worker_idx))
             return True
         return False
         
     def explore(self):
-        """perturb hyperparaters with noise from a normal distribution"""
+        """perturb hyperparameters with noise from a normal distribution"""
         eps = np.random.randn(*self.h.shape) * 0.1
         self.h += eps
         
@@ -63,8 +66,10 @@ class Worker(object):
         self.pop_score[self.idx] = self.score
         self.pop_params[self.idx] = (np.copy(self.theta), np.copy(self.h)) # np arrays are mutable
         self.theta_history.append(np.copy(self.theta))
-        self.loss_history.append(self.score)
-
+        self.Q_history.append(self.score)
+        
+        if len(self.Q_history) % 10 == 0:
+            self.logger.info("Q = {:0.2f} ({:0.2f}%)".format(self.score, self.score * 100 / 1.2))
 
 def run(steps=200, explore=True, exploit=True):
     # Q and Q_hat, as per fig. 2: https://arxiv.org/pdf/1711.09846.pdf
@@ -105,11 +110,11 @@ def run(steps=200, explore=True, exploit=True):
 
     return population
     
-def plot_loss(run, i, steps, title):
+def plot_Q(run, i, steps, title):
     
     plt.subplot(2,4,i)
-    plt.plot(run[0].loss_history, color='b', lw=0.7)
-    plt.plot(run[1].loss_history, color='r', lw=0.7)
+    plt.plot(run[0].Q_history, color='b', lw=0.7)
+    plt.plot(run[1].Q_history, color='r', lw=0.7)
     plt.axhline(y=1.2, linestyle='dotted', color='k')
     axes = plt.gca()
     axes.set_xlim([0,steps])
@@ -135,7 +140,11 @@ def plot_theta(run, i, steps, title):
     plt.ylabel('theta1')
     
 def main():
-
+    
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s.%(msecs)03d %(name)s %(message)s',
+                        datefmt="%M:%S")
+    
     steps = 200
     
     run1 = run(steps=steps)
@@ -144,10 +153,10 @@ def main():
     run4 = run(steps=steps, exploit=False, explore=False)
     
     
-    plot_loss(run1, 3, steps=steps, title='PBT')
-    plot_loss(run2, 4, steps=steps, title='Explore only')
-    plot_loss(run3, 7, steps=steps, title='Exploit only')
-    plot_loss(run4, 8, steps=steps, title='Grid Search')
+    plot_Q(run1, 3, steps=steps, title='PBT')
+    plot_Q(run2, 4, steps=steps, title='Explore only')
+    plot_Q(run3, 7, steps=steps, title='Exploit only')
+    plot_Q(run4, 8, steps=steps, title='Grid Search')
     
     plot_theta(run1, 1, steps=steps, title='PBT')
     plot_theta(run2, 2, steps=steps, title='Explore only')
