@@ -1,5 +1,5 @@
 from pbd import Worker
-from multiprocessing import Process, Managers
+from multiprocessing import Process, Manager
 
 import time
 import numpy as np
@@ -31,7 +31,8 @@ def main():
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s.%(msecs)03d %(name)s %(message)s',
                         datefmt="%M:%S")
-    
+                        
+    manager = Manager()
     pop_score = manager.list() # create a proxy for shared objects between processes
     pop_score.append({})
     
@@ -50,8 +51,8 @@ def main():
                 theta=np.random.randn(2), 
                 pop_score=pop_score, 
                 pop_params=pop_params,
-                use_logger=False # unfortunately difficult to use logger in multiprocessing
-                asynchronous=True # enable shared memory between spawned processes
+                use_logger=False, # unfortunately difficult to use logger in multiprocessing
+                asynchronous=True, # enable shared memory between spawned processes
                 )
                 for i in range(population_size)
                 ]
@@ -66,6 +67,8 @@ def main():
     # start the processes
     for i in range(population_size):
         processes[i].start()
+    for i in range(population_size): # join to prevent Manager to shutdown
+        processes[i].join()
 
 if __name__ == '__main__':
     main()

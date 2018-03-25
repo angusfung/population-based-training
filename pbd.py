@@ -15,6 +15,8 @@ class Worker(object):
         else:
             print("Beginning Worker-{}".format(self.idx))
             
+        self.asynchronous = asynchronous
+
         self.obj = obj
         self.surrogate_obj = surrogate_obj
         self.theta = theta
@@ -53,11 +55,19 @@ class Worker(object):
         
     def exploit(self):
         """copy weights, hyperparams from the member in the population with the highest performance"""
-        best_worker_idx = max(self.pop_score.items(), key=operator.itemgetter(1))[0]
+        if self.asynchronous:
+            pop_score, pop_params = self.proxy_sync(pull=True)
+        else:
+            pop_score = self.pop_score
+            pop_params = self.pop_params
+            
+        best_worker_idx = max(pop_score.items(), key=operator.itemgetter(1))[0]
         if best_worker_idx != self.idx:
-            print(self.idx, self.pop_score)
-            best_worker_theta, best_worker_h = self.pop_params[best_worker_idx]
+            # print(self.idx, pop_score) enable to check if shared memory is being updated
+            
+            best_worker_theta, best_worker_h = pop_params[best_worker_idx]
             self.theta = np.copy(best_worker_theta)
+            
             if self.use_logger:
                 self.logger.info("Inherited optimal weights from Worker-{}".format(best_worker_idx))
             else:
@@ -72,8 +82,12 @@ class Worker(object):
         
     def update(self):
         """update worker stats in global dictionary"""
-        self.pop_score[self.idx] = self.score
-        self.pop_params[self.idx] = (np.copy(self.theta), np.copy(self.h)) # np arrays are mutable
+        if not self.asynchronous:
+            self.pop_score[self.idx] = self.score
+            self.pop_params[self.idx] = (np.copy(self.theta), np.copy(self.h)) # np arrays are mutable
+        else:
+            self.proxy_sync(push=True)
+            
         self.theta_history.append(np.copy(self.theta))
         self.Q_history.append(self.score)
         
@@ -87,6 +101,24 @@ class Worker(object):
                                                             self.score, 
                                                             self.score * 100 / 1.2),
                                                             )
+                                                                                      
+    def proxy_sync(self, pull=False, push=False):
+        """for asynchronous workers, we need to sync the values to the shared proxies
+        https://docs.python.org/2/library/multiprocessing.html#multiprocessing.managers.SyncManager.list
+        """
+        
+        if pull: # grab newest copy of pop_params
+            return self.pop_score[0], self.pop_params[0]
+
+        if push: # update newest copy
+            _pop_score = self.pop_score[0]
+            _pop_params = self.pop_params[0]
+            
+            _pop_score[self.idx] = self.score
+            _pop_params[self.idx] = (np.copy(self.theta), np.copy(self.h))
+            
+            self.pop_score[0] = _pop_score
+            self.pop_params[0] = _pop_params
 
 def run(steps=200, explore=True, exploit=True):
     # Q and Q_hat, as per fig. 2: https://arxiv.org/pdf/1711.09846.pdf
