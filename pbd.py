@@ -6,10 +6,15 @@ import matplotlib.pyplot as plt
 import logging
 
 class Worker(object):
-    def __init__(self, idx, obj, surrogate_obj, h, theta, pop_score, pop_params):
+    def __init__(self, idx, obj, surrogate_obj, h, theta, pop_score, pop_params, use_logger, asynchronous=False):
         self.idx = idx
-        self.logger = logging.getLogger("Worker-{}".format(self.idx))
         
+        self.use_logger = use_logger
+        if use_logger:
+            self.logger = logging.getLogger("Worker-{}".format(self.idx))
+        else:
+            print("Beginning Worker-{}".format(self.idx))
+            
         self.obj = obj
         self.surrogate_obj = surrogate_obj
         self.theta = theta
@@ -50,9 +55,13 @@ class Worker(object):
         """copy weights, hyperparams from the member in the population with the highest performance"""
         best_worker_idx = max(self.pop_score.items(), key=operator.itemgetter(1))[0]
         if best_worker_idx != self.idx:
+            print(self.idx, self.pop_score)
             best_worker_theta, best_worker_h = self.pop_params[best_worker_idx]
             self.theta = np.copy(best_worker_theta)
-            self.logger.info("Inherited optimal weights from Worker-{}".format(best_worker_idx))
+            if self.use_logger:
+                self.logger.info("Inherited optimal weights from Worker-{}".format(best_worker_idx))
+            else:
+                print("Worker-{} Inherited optimal weights from Worker-{}".format(self.idx, best_worker_idx))
             return True
         return False
         
@@ -69,7 +78,15 @@ class Worker(object):
         self.Q_history.append(self.score)
         
         if len(self.Q_history) % 10 == 0:
-            self.logger.info("Q = {:0.2f} ({:0.2f}%)".format(self.score, self.score * 100 / 1.2))
+            if self.use_logger:
+                self.logger.info("Q = {:0.2f} ({:0.2f}%)".format(self.score, self.score * 100 / 1.2))
+            else:
+                print("Worker-{} Step {} Q = {:0.2f} ({:0.2f}%)".format(
+                                                            self.idx, 
+                                                            len(self.Q_history),
+                                                            self.score, 
+                                                            self.score * 100 / 1.2),
+                                                            )
 
 def run(steps=200, explore=True, exploit=True):
     # Q and Q_hat, as per fig. 2: https://arxiv.org/pdf/1711.09846.pdf
@@ -81,8 +98,8 @@ def run(steps=200, explore=True, exploit=True):
         
     # initialize two workers 
     population = [
-        Worker(1, obj, surrogate_obj, np.array([1.,0.]), np.array([0.9, 0.9]), pop_score, pop_params),
-        Worker(2, obj, surrogate_obj, np.array([0.,1.]), np.array([0.9, 0.9]), pop_score, pop_params),
+        Worker(1, obj, surrogate_obj, np.array([1.,0.]), np.array([0.9, 0.9]), pop_score, pop_params, True),
+        Worker(2, obj, surrogate_obj, np.array([0.,1.]), np.array([0.9, 0.9]), pop_score, pop_params, True),
         ]
         
     for step in range(steps):

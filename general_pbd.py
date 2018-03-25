@@ -1,5 +1,5 @@
 from pbd import Worker
-from multiprocessing import Process
+from multiprocessing import Process, Managers
 
 import time
 import numpy as np
@@ -28,15 +28,17 @@ def run(worker, steps):
     return
         
 def main():
-    
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s.%(msecs)03d %(name)s %(message)s',
                         datefmt="%M:%S")
-
-    pop_score = {} # score for all members
-    pop_params = {} # params for all members
-    population_size = 10
     
+    pop_score = manager.list() # create a proxy for shared objects between processes
+    pop_score.append({})
+    
+    pop_params = manager.list()
+    pop_params.append({})
+    
+    population_size = 10
     steps = 200
     
     Population = [
@@ -49,6 +51,7 @@ def main():
                 pop_score=pop_score, 
                 pop_params=pop_params,
                 use_logger=False # unfortunately difficult to use logger in multiprocessing
+                asynchronous=True # enable shared memory between spawned processes
                 )
                 for i in range(population_size)
                 ]
