@@ -15,7 +15,7 @@ def obj(theta):
 def surrogate_obj(theta, h):
     return 1.2 - np.sum(h*theta**2)
 
-def run(worker, steps, theta_dict, Q_dict):
+def run(worker, steps, theta_dict, Q_dict, loss_dict):
     """start worker object asychronously"""
     for step in range(steps):
         worker.step(vanilla=True) # one step of GD
@@ -32,23 +32,47 @@ def run(worker, steps, theta_dict, Q_dict):
     
     _theta_dict = theta_dict[0]
     _Q_dict = Q_dict[0]
+    _loss_dict = loss_dict[0]
     _theta_dict[worker.idx] = worker.theta_history
     _Q_dict[worker.idx] = worker.Q_history
+    _loss_dict[worker.idx] = worker.loss_history
     theta_dict[0] = _theta_dict
     Q_dict[0] = _Q_dict
+    loss_dict[0] = _loss_dict
     
-def plot(title, Q_history, steps, population_sizes):
+def plot(title, type, history, steps, population_sizes):
     
     for population_size in population_sizes:
-        plt.plot(Q_history[population_size], lw=0.7, label=str(population_size) + ' Worker')
-    plt.axhline(y=1.2, linestyle='dotted', color='k')
+        if type == 'Q':
+            plt.plot(history[population_size], lw=0.7, label=str(population_size))
+        else:
+            plt.scatter(np.arange(0,steps+1), history[population_size], label=str(population_size), s=2)
+    
+    if type == 'Q':
+        plt.axhline(y=1.2, linestyle='dotted', color='k')
+        
     axes = plt.gca()
     axes.set_xlim([0,steps])
-    axes.set_ylim([0.0, 1.21])
+    if type == 'Q':
+        axes.set_ylim([0.0, 1.21])
     
     plt.title(title)
     plt.xlabel('Step')
-    plt.ylabel('Q')
+    plt.ylabel(type)
+    plt.legend(loc='upper right')
+    
+    plt.show()
+    
+def plot_theta(title, history, steps, population_sizes):
+    
+    for population_size in population_sizes:
+        x = [_[0] for _ in history[population_size]]
+        y = [_[1] for _ in history[population_size]]
+        plt.scatter(x, y, s=2, label=str(population_size))
+        
+    plt.title(title)
+    plt.xlabel('theta0')
+    plt.ylabel('theta1')
     plt.legend(loc='upper right')
     
     plt.show()
@@ -60,6 +84,7 @@ def main():
 
     Q_dict_with_size = {} # stores {population_size: Q_dict}
     theta_dict_with_size = {} # stores {population_size: theta}
+    loss_dict_with_size = {} 
     
     population_sizes = [1, 2, 4, 8, 16, 32]
     
@@ -71,16 +96,15 @@ def main():
         pop_params = Manager().list()
         pop_params.append({})
         
-        # population_size = 10
-        steps = 50
+        steps = 150
         
         Population = [
                 Worker(
                     idx=i, 
                     obj=obj, 
                     surrogate_obj=surrogate_obj, 
-                    h=np.random.randn(2), 
-                    theta=np.random.randn(2), 
+                    h=np.random.rand(2), 
+                    theta=np.random.rand(2), 
                     pop_score=pop_score, 
                     pop_params=pop_params,
                     use_logger=False, # unfortunately difficult to use logger in multiprocessing
@@ -91,6 +115,8 @@ def main():
         
         theta_dict = Manager().list()
         theta_dict.append({})
+        loss_dict = Manager().list()
+        loss_dict.append({})
         Q_dict = Manager().list()
         Q_dict.append({})
         
@@ -99,7 +125,7 @@ def main():
         for worker in Population:
             _p = Process(
                     target=run, 
-                    args=(worker,steps,theta_dict,Q_dict)
+                    args=(worker,steps,theta_dict,Q_dict,loss_dict)
                     )
             processes.append(_p)
         
@@ -115,12 +141,11 @@ def main():
         # save best agent/worker for a given population size
         Q_dict_with_size[population_size] = Q_dict[0][best_worker_idx]
         theta_dict_with_size[population_size] = theta_dict[0][best_worker_idx]
-        
-    # plot('Population of 10 Workers', Q_dict[0][best_worker_idx], steps
-    plot('Q per step for various population sizes', Q_dict_with_size, steps, population_sizes)
+        loss_dict_with_size[population_size] = loss_dict[0][best_worker_idx]
+                
+    plot('Q per step for various population sizes', 'Q', Q_dict_with_size, steps, population_sizes)
+    plot_theta('theta per step for various population sizes', theta_dict_with_size, steps, population_sizes)
+    plot('loss per step for various population sizes', 'loss', loss_dict_with_size, steps, population_sizes)
     
-    
-    
-
 if __name__ == '__main__':
     main()

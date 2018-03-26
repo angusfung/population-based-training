@@ -23,18 +23,21 @@ class Worker(object):
         self.h = h
         
         self.score = 0 # current score
+        self.loss = 0
+        
         self.pop_score = pop_score # reference to population statistics
         self.pop_params = pop_params
         
         # for plotting
         self.theta_history = []
         self.Q_history = []
+        self.loss_history = []
         
         self.rms = 0 # for rmsprop
         
         self.update() # intialize population
         
-    def step(self, vanilla=False, rmsprop=False, Adam=False):
+    def step(self, vanilla=False, rmsprop=False, Adam=False, use_loss=True):
         """one step of GD"""
         decay_rate = 0.9
         alpha = 0.01
@@ -42,11 +45,17 @@ class Worker(object):
         
         d_surrogate_obj = -2.0 * self.h * self.theta
         
+        if use_loss:
+            self.loss = (self.obj(self.theta)-self.surrogate_obj(self.theta, self.h))**2
+            d_loss = 2 * (self.obj(self.theta)-self.surrogate_obj(self.theta, self.h)) * d_surrogate_obj
+        else: # paper maximized Q (did not use loss function)
+            d_loss = -d_surrogate_obj # negative for gradient ascent
+        
         if vanilla:
-            self.theta += d_surrogate_obj * alpha # ascent to maximize function
+            self.theta -= d_loss * alpha
         else:
-            self.rms = decay_rate * self.rms + (1-decay_rate) * d_surrogate_obj**2
-            self.theta += alpha * d_surrogate_obj / (np.sqrt(self.rms) + eps)
+            self.rms = decay_rate * self.rms + (1-decay_rate) * d_loss**2
+            self.theta -= alpha * d_loss / (np.sqrt(self.rms) + eps)
                                 
     def eval(self):
         """metric we want to optimize e.g mean episodic return or validation set performance"""
@@ -90,6 +99,7 @@ class Worker(object):
             
         self.theta_history.append(np.copy(self.theta))
         self.Q_history.append(self.score)
+        self.loss_history.append(self.loss)
         
         if len(self.Q_history) % 10 == 0:
             if self.use_logger:
@@ -137,7 +147,7 @@ def run(steps=200, explore=True, exploit=True):
     for step in range(steps):
         for worker in population:
             
-            worker.step(vanilla=True) # one step of GD
+            worker.step(vanilla=True, use_loss=False) # one step of GD
             worker.eval() # evaluate current model
             
             if step % 10 == 0:
