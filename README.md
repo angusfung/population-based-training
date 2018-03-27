@@ -31,7 +31,7 @@ Population sizes of 1, 2, 4, 8, 16, and 32 were used, and the best performing wo
  * Generally, the more workers used, the faster the population converges to `Q`
  * The benefits of adding more workers tends to tail off, as each subsequent increase in population size introduces less performance benefits than the previous (`2` workers is a lot better than `1`, but `16` is only marginally better than `8`)
  ![alt text](https://github.com/angusfung/population-based-training/blob/master/plots/w_32_s150_loss.png)
- * The jumps in the green plot represent exploration and exploitation
+ * The jumps in the green plot represent exploration and exploitation; there are no jumps in the blue plot as there's no concept of exploitation for `1` worker (but we can see exploration if we look close enough)
  ![alt text](https://github.com/angusfung/population-based-training/blob/master/plots/w_32_s150_theta.png)
  * Generally, "lines" corresponding to larger population sizes are shorter; that's because the more workers, the faster it finds the optimal `theta` value
  
