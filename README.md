@@ -24,7 +24,8 @@ Some key observations:
  ### Population Size 
  
  `general_pbd.py` implements pbd fully asynchronously, where `Workers` work in parallel and interact via shared memory. The below plots illustrate the effect of population size on `Q` (objective function), `loss`, and `theta`.  
-Population sizes of 1, 2, 4, 8, 16, and 32 were used, and the best performing worker of each population was graphed. 
+ 
+Population sizes of 1, 2, 4, 8, 16, and 32 were used, and the best performing worker from each population was graphed (see the legend for the color scheme).
  
  ![alt text](https://github.com/angusfung/population-based-training/blob/master/plots/w_32_s_150_pic1.png)
  * Generally, the more workers used, the faster the population converges to `Q`
