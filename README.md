@@ -20,3 +20,14 @@ Some key observations:
 #### Run
  `./pbd.py` or `./toy_example.py`
  `pbd.py` was the original implementation of the toy example, but much complexity has been added to it to support other scripts. For a clean implementation of the toy example, please read `toy_example.py`.
+ 
+ ### Population Size 
+ 
+ `general_pbd.py` implements pbd fully asynchronously, where `Workers` work in parallel and interact via shared memory. The below plots illustrate the effect of population size on `Q` (objective function),`loss`, and `theta`.
+ 
+ ![alt text](https://github.com/angusfung/population-based-training/blob/master/plots/w_32_s_150_pic1.png)
+ ![alt text](https://github.com/angusfung/population-based-training/blob/master/plots/w_32_s150_loss.png)
+ ![alt text](https://github.com/angusfung/population-based-training/blob/master/plots/w_32_s150_theta.png)
+ 
+ 
+ 
