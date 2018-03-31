@@ -18,4 +18,22 @@ Some key observations:
    * The *Grid search*, plot never converges to `1.2` due to bad initialization. As the hyperparameters are **fixed** during the entire training, `Worker1` with `h=[1 0]` and `Worker2` with `h=[0 1]`, the surrogate function will never converge to the real function with `h=[1 1]`. This illustrates the shortcomings of grid-search, which can limit the generalization capabilities of a model (especically with bad initializations).
 
 #### Run
- ./pbd.py
+ `./pbd.py` or `./toy_example.py`
+ `pbd.py` was the original implementation of the toy example, but much complexity has been added to it to support other scripts. For a clean implementation of the toy example, please read `toy_example.py`.
+ 
+ ### Population Size 
+ 
+ `general_pbd.py` implements pbd fully asynchronously, where `Workers` work in parallel and interact via shared memory. The below plots illustrate the effect of population size on `Q` (objective function), `loss`, and `theta`.  
+ 
+Population sizes of 1, 2, 4, 8, 16, and 32 were used, and the best performing worker from each population was graphed (see the legend for the color scheme).
+ 
+ ![alt text](https://github.com/angusfung/population-based-training/blob/master/plots/w_32_s_150_pic1.png)
+ * Generally, the more workers used, the faster the population converges to `Q`
+ * The benefits of adding more workers tends to tail off, as each subsequent increase in population size introduces less performance benefits than the previous (`2` workers is a lot better than `1`, but `16` is only marginally better than `8`)
+ ![alt text](https://github.com/angusfung/population-based-training/blob/master/plots/w_32_s150_loss.png)
+ * The jumps in the green plot represent exploration and exploitation; there are no jumps in the blue plot as there's no concept of exploitation for `1` worker (but we can see exploration if we look close enough)
+ ![alt text](https://github.com/angusfung/population-based-training/blob/master/plots/w_32_s150_theta.png)
+ * Generally, "lines" corresponding to larger population sizes are shorter; that's because the more workers, the faster it finds the optimal `theta` value
+ 
+ 
+ 
