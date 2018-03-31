@@ -1,17 +1,20 @@
 import argparse
 import sys
+import os
 
 import tensorflow as tf
 
 def main(_):
+    logs_path = os.path.join(os.getcwd(), 'logs')
+    
     ps_hosts = FLAGS.ps_hosts.split(",")
     worker_hosts = FLAGS.worker_hosts.split(",")
     
 
-    # Create a cluster from the parameter server and worker hosts.
+    # create a cluster from the parameter server and worker hosts.
     cluster = tf.train.ClusterSpec({"ps": ps_hosts, "worker": worker_hosts})
     
-    # Create and start a server for the local task.
+    # create and start a server for the local task.
     server = tf.train.Server(cluster,
                             job_name=FLAGS.job_name,
                             task_index=FLAGS.task_index)
@@ -20,20 +23,39 @@ def main(_):
         server.join()
     elif FLAGS.job_name == "worker":
         
-        # Assigns ops to the local worker by default.
+        # assigns ops to the local worker by default.
         with tf.device(tf.train.replica_device_setter(
             worker_device="/job:worker/task:%d" % FLAGS.task_index,
             cluster=cluster)):
                 
-            # model
+            # create model
+            h = tf.get_variable('h', initializer=tf.random_uniform(shape=[2]), trainable=False)
+            theta = tf.get_variable('theta', initializer=[0.9, 0.9])
+            
+            surrogate_obj = 1.2 - tf.reduce_sum(tf.multiply(h, tf.square(theta)))
+            obj = 1.2 - tf.reduce_sum(tf.square(theta))
+            
+            loss = tf.square((obj - surrogate_obj))
+            
+            optimizer = tf.train.AdamOptimizer(1e-4)
+            train_step = optimizer.minimize(loss)
+            
+            tf.summary.scalar('loss', loss)
+            merged = tf.summary.merge_all()
+
+            
             
             with tf.train.MonitoredTrainingSession(master=server.target,
                                                 is_chief=(FLAGS.task_index == 0)) as mon_sess:
+                                                    
+                # create log writer object (log from each machine)
+                writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
                 
-                for i in range(10):
-                    # print(i, FLAGS.task_index)
-                    _place, value = mon_sess.run([W, y])
-                    print(value)
+                for i in range(1000):                    
+                    summary, a, b, c, _= mon_sess.run([merged, h, theta, loss, train_step])
+                    print(a, b, c)
+                    writer.add_summary(summary, i)
+                    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
