@@ -35,5 +35,14 @@ Population sizes of 1, 2, 4, 8, 16, and 32 were used, and the best performing wo
  ![alt text](https://github.com/angusfung/population-based-training/blob/master/plots/w_32_s150_theta.png)
  * Generally, "lines" corresponding to larger population sizes are shorter; that's because the more workers, the faster it finds the optimal `theta` value
  
+ ## Distributed Tensorflow
+ 
+```
+python3 pbd_tf.py --ps_hosts=localhost:2222 --worker_hosts=localhost:2223,localhost:2224 --job_name=ps --task_index=0
+python3 pbd_tf.py --ps_hosts=localhost:2222 --worker_hosts=localhost:2223,localhost:2224 --job_name=worker --task_index=0
+python3 pbd_tf.py --ps_hosts=localhost:2222 --worker_hosts=localhost:2223,localhost:2224 --job_name=worker --task_index=1 
+tensorboard --logdir=~/Desktop/Scripts/population-based-training-nn/logs
+```
+ 
  
  
