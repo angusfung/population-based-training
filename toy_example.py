@@ -87,9 +87,20 @@ def run(steps=200, explore=True, exploit=True):
             worker.eval() # evaluate current model
             
             if step % 10 == 0:
-                do_explore = worker.exploit()                
-                if do_explore:
+                if explore and exploit:
+                    do_explore = worker.exploit()                
+                    if do_explore:
+                        worker.explore()
+                        
+                elif explore and not exploit:
                     worker.explore()
+                
+                elif not explore and exploit:
+                    worker.exploit()
+                    
+                elif not explore and not exploit:
+                    pass
+                    
             worker.update()
 
     return population
