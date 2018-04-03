@@ -19,7 +19,7 @@ def main(_):
                             
     # log each worker seperately for tensorboard
     # https://github.com/tensorflow/tensorboard/blob/master/README.md#runs-comparing-different-executions-of-your-model
-    logs_path = os.path.join(os.getcwd(), 'logs'.format(FLAGS.task_index))
+    logs_path = os.path.join(os.getcwd(), 'logs', '{}'.format(FLAGS.task_index))
                             
     if FLAGS.job_name == "ps":
         server.join()
