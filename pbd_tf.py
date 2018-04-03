@@ -18,6 +18,7 @@ def main(_):
                             task_index=FLAGS.task_index)
                             
     # log each worker seperately for tensorboard
+    # https://github.com/tensorflow/tensorboard/blob/master/README.md#runs-comparing-different-executions-of-your-model
     logs_path = os.path.join(os.getcwd(), 'logs'.format(FLAGS.task_index))
                             
     if FLAGS.job_name == "ps":
@@ -36,9 +37,6 @@ def main(_):
             cluster=cluster)):
                 
             # create model
-            h = tf.get_variable('h', initializer=tf.random_uniform(shape=[2]), trainable=False)
-            theta = tf.get_variable('theta', initializer=[0.9, 0.9])
-            
             surrogate_obj = 1.2 - tf.reduce_sum(tf.multiply(h, tf.square(theta)))
             obj = 1.2 - tf.reduce_sum(tf.square(theta))
             
@@ -52,15 +50,21 @@ def main(_):
 
             
             with tf.train.MonitoredTrainingSession(master=server.target,
-                                                is_chief=(FLAGS.task_index == 0)) as mon_sess:
+                                                is_chief=1) as mon_sess:
                                                     
                 # create log writer object (log from each machine)
                 writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
                 
-                for i in range(1000):                    
-                    summary, a, b, c, _= mon_sess.run([merged, h, theta, loss, train_step])
-                    print(a, b, c)
-                    writer.add_summary(summary, i)
+                for step in range(200):                    
+                    summary, h_, theta_, loss_, _= mon_sess.run([merged, h, theta, loss, train_step])
+                    print("Worker {}, Step {}, h = {}, theta = {}, loss = {:0.3f}".format(
+                                                                                    FLAGS.task_index,
+                                                                                    step,
+                                                                                    h_,
+                                                                                    theta_,
+                                                                                    loss_
+                                                                                    ))
+                    writer.add_summary(summary, step)
                     
 
 if __name__ == "__main__":
