@@ -1,7 +1,7 @@
 import argparse
 import sys
 import os
-
+import numpy as np
 import tensorflow as tf
 
 def main(_):
@@ -36,6 +36,40 @@ def main(_):
             worker_device="/job:worker/task:%d" % FLAGS.task_index,
             cluster=cluster)):
                 
+            """
+            can't modify MutableHashTable once MTS finalizes the graph, 
+            although a mapped assign might work
+            """
+            # num_workers = len(worker_hosts)
+            # global_weights = tf.contrib.lookup.MutableHashTable(
+            #                     key_dtype=tf.string, # worker idx (int doesn't work here)
+            #                     value_dtype=tf.float32, # weights
+            #                     default_value=-999,
+            #                     )
+            
+            best_weights = tf.tuple(
+                [
+                    tf.get_variable(
+                        name='worker_idx',
+                        dtype=tf.int32, 
+                        initializer=tf.constant(-1, dtype=tf.int32), 
+                        trainable=False), 
+                        
+                    tf.get_variable(
+                        name='weight',
+                        dtype=tf.float64, 
+                        initializer=tf.constant(np.array([-1.,-1.])), 
+                        trainable=False),
+                ])
+        
+            weight_placeholder = tf.tuple([tf.placeholder(dtype=tf.int32, shape=[1]), tf.placeholder(dtype=tf.float32, shape=[2])])
+            assign_weights = tf.contrib.framework.nest.map_structure(
+                                lambda state, var: tf.assign(var, state),
+                                weight_placeholder,
+                                best_weights,
+                                check_types=False
+                                )
+                                                        
             # create model
             surrogate_obj = 1.2 - tf.reduce_sum(tf.multiply(h, tf.square(theta)))
             obj = 1.2 - tf.reduce_sum(tf.square(theta))
@@ -47,11 +81,15 @@ def main(_):
             
             tf.summary.scalar('loss', loss)
             merged = tf.summary.merge_all()
-
+            
+            random_index = tf.constant(5)
+            random_str = tf.as_string(random_index)
+            
             
             with tf.train.MonitoredTrainingSession(master=server.target,
                                                 is_chief=1) as mon_sess:
-                                                    
+
+                
                 # create log writer object (log from each machine)
                 writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
                 
@@ -65,7 +103,6 @@ def main(_):
                                                                                     loss_
                                                                                     ))
                     writer.add_summary(summary, step)
-                    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
