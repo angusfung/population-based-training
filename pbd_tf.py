@@ -46,31 +46,22 @@ def main(_):
             #                     value_dtype=tf.float32, # weights
             #                     default_value=-999,
             #                     )
+            worker_idx = tf.constant(FLAGS.task_index)
             
-            best_weights = tf.tuple(
-                [
-                    tf.get_variable(
-                        name='worker_idx',
-                        dtype=tf.int32, 
-                        initializer=tf.constant(-1, dtype=tf.int32), 
-                        trainable=False), 
-                        
-                    tf.get_variable(
-                        name='weight',
-                        dtype=tf.float64, 
-                        initializer=tf.constant(np.array([-1.,-1.])), 
-                        trainable=False),
-                ])
-        
-            weight_placeholder = tf.tuple([tf.placeholder(dtype=tf.int32, shape=[1]), tf.placeholder(dtype=tf.float32, shape=[2])])
-            assign_weights = tf.contrib.framework.nest.map_structure(
-                                lambda state, var: tf.assign(var, state),
-                                weight_placeholder,
-                                best_weights,
-                                check_types=False
-                                )
-                                                        
-            # create model
+            best_worker_idx = tf.get_variable(
+                                name='best_idx', dtype=tf.int32, 
+                                initializer=tf.constant(-1), trainable=False)
+                                
+            idx_placeholder = tf.placeholder(dtype=tf.int32, shape=[])
+            best_worker_weight = tf.get_variable(
+                                name='best_weight',dtype=tf.float32,
+                                initializer=tf.constant([-1., -1.]), trainable=False)
+                                
+            best_worker_loss = tf.get_variable(
+                                name='best_loss', dtype=tf.float32,
+                                initializer=tf.constant(-999.), trainable=False)
+            
+            # create model (main graph)
             surrogate_obj = 1.2 - tf.reduce_sum(tf.multiply(h, tf.square(theta)))
             obj = 1.2 - tf.reduce_sum(tf.square(theta))
             
@@ -82,9 +73,28 @@ def main(_):
             tf.summary.scalar('loss', loss)
             merged = tf.summary.merge_all()
             
-            random_index = tf.constant(5)
-            random_str = tf.as_string(random_index)
+            # assign
             
+            
+            # create mini graphs for exploit updates
+            def exploit(
+                worker_idx, worker_weight, worker_loss,
+                best_worker_idx, best_worker_weight, best_worker_loss,
+                ):
+                """
+                inputs:
+                -worker_idx:         rank 0 tensor (device index)
+                -worker_weight:      rank 1 tensor (weights)
+                -best_worker_idx:    rank 0 tensor (global best worker in population)
+                -best_worker_weight: rank 1 tensor (global best weights in population)
+                ...
+                """
+                # if tf.greater(worker_loss, best_worker_loss):
+                # update = worker_idx.assign(tf.constant(1000))
+                update = best_worker_idx.assign(tf.constant(1000))
+                return update
+                    
+            update_weights = exploit(worker_idx, theta, loss, best_worker_idx, best_worker_weight, best_worker_loss)
             
             with tf.train.MonitoredTrainingSession(master=server.target,
                                                 is_chief=1) as mon_sess:
@@ -103,6 +113,11 @@ def main(_):
                                                                                     loss_
                                                                                     ))
                     writer.add_summary(summary, step)
+                    
+                print(mon_sess.run([best_worker_idx]))    
+                update = mon_sess.run([update_weights])
+                # mon_sess.run(update)
+                print(mon_sess.run(best_worker_idx))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
