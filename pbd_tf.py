@@ -141,19 +141,25 @@ def main(_):
                                     true_fn=push_weights, 
                                     false_fn=pull_weights,
                                     )
-                    _ = tf.Print( # for debug
-                            input_=[worker_loss, best_worker_loss],
-                            data=[worker_loss, best_worker_loss, best_worker_idx],
-                            )
-                            
-                    return _, update
+                    # for debug 1 
+                    # _ = tf.Print(
+                    #         input_=[worker_loss, best_worker_loss],
+                    #         data=[worker_loss, best_worker_loss, best_worker_idx],
+                    #         )
+                    # return _, update
+                    
+                    return update
 
-                update_weights = exploit(
+                do_exploit = exploit(
                                 worker_idx, theta, loss, 
                                 best_worker_idx, best_worker_weight, best_worker_loss)
                                 
             with tf.name_scope('explore_graph'):
-                pass
+                def explore(h):
+                    return h.assign(h + tf.random_normal(shape=[2]) * 0.1)
+                    
+                do_explore = explore(h)
+                
             
             with tf.train.MonitoredTrainingSession(master=server.target,
                                                 is_chief=1) as mon_sess:
@@ -174,9 +180,8 @@ def main(_):
                     writer.add_summary(summary, step)
                     
                     if step % 5 == 0:
-                        mon_sess.run([update_weights]) # exploit
-                        
-                
+                        mon_sess.run([do_exploit]) # exploit
+                        mon_sess.run([do_explore]) # explore
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
