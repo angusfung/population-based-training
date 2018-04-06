@@ -4,6 +4,8 @@ import os
 import numpy as np
 import tensorflow as tf
 
+tf.logging.set_verbosity(tf.logging.INFO)
+
 def main(_):
     # we need to provide all ps and worker info to each server so they are aware of each other
     ps_hosts = FLAGS.ps_hosts.split(",")
@@ -95,33 +97,63 @@ def main(_):
                     """
                     
                     def push_weights():
-                        print("Optimal weights found on Worker-{}".format(FLAGS.task_index)) 
-                        update1 = best_worker_idx.assign(worker_idx)
-                        # update2 = best_worker_weight.assign(worker_weight)
-                        # update3 = best_worker_loss.assign(worker_loss)
+                        _ = tf.Print( # add print node to the graph
+                                input_=tf.constant(1.), # do nothing
+                                data=[], # do nothing
+                                message="Optimal weights found on Worker-{}".format(FLAGS.task_index)
+                                ) 
+                        update1 = best_worker_weight.assign(worker_weight)
+                        update2 = best_worker_idx.assign(worker_idx)
+                        update3 = best_worker_loss.assign(worker_loss)
                         
-                        return update1
+                        return (_, update1, update2, update3)
                         
                     def pull_weights():
-                    
-                        print("Inherited optimal weights from Worker-{}".format(FLAGS.task_index))
-                        update = worker_weight.assign(best_worker_weight)
+                        def do_not_pull():
+                            _ = tf.Print(
+                                    input_=tf.constant(1.),
+                                    data=[], 
+                                    message="Continue with current weights")
+                            update1 = tf.identity(worker_weight) # placeholder
+                            update2 = tf.identity(worker_idx) # placeholder 
+                            update3 = tf.identity(worker_loss) # placeholder
+                            return (_, update1, update2, update3)
                         
-                        return update
+                        def do_pull():
+                            _ = tf.Print(
+                                    input_=best_worker_idx,
+                                    data=[best_worker_idx], 
+                                    message="Inherited optimal weights from Worker-")
+                            update1 = worker_weight.assign(best_worker_weight)
+                            update2 = tf.identity(worker_idx) # placeholder 
+                            update3 = tf.identity(worker_loss) # placeholder
+                            return (_, update1, update2, update3)
+                            
+                        updates = tf.cond(
+                                        tf.equal(best_worker_idx, worker_idx),
+                                        true_fn=do_not_pull,
+                                        false_fn=do_pull,
+                                        )
+                        return updates
                     
-                        
                     update = tf.cond(
-                                    worker_loss > best_worker_loss, 
+                                    tf.greater(worker_loss, best_worker_loss), 
                                     true_fn=push_weights, 
                                     false_fn=pull_weights,
-                                    strict=False,
-                                    ) 
-                    return update
-
+                                    )
+                    _ = tf.Print( # for debug
+                            input_=[worker_loss, best_worker_loss],
+                            data=[worker_loss, best_worker_loss, best_worker_idx],
+                            )
+                            
+                    return _, update
 
                 update_weights = exploit(
                                 worker_idx, theta, loss, 
                                 best_worker_idx, best_worker_weight, best_worker_loss)
+                                
+            with tf.name_scope('explore_graph'):
+                pass
             
             with tf.train.MonitoredTrainingSession(master=server.target,
                                                 is_chief=1) as mon_sess:
@@ -141,10 +173,10 @@ def main(_):
                                                                                     ))
                     writer.add_summary(summary, step)
                     
-                # print(mon_sess.run([best_worker_idx]))    
-                # update = mon_sess.run([update_weights])
-                # # mon_sess.run(update)
-                # print(mon_sess.run(best_worker_idx))
+                    if step % 5 == 0:
+                        mon_sess.run([update_weights]) # exploit
+                        
+                
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
