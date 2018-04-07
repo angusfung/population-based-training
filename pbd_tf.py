@@ -60,7 +60,7 @@ def main(_):
                                 
                 best_worker_loss = tf.get_variable(
                                     name='best_loss', dtype=tf.float32,
-                                    initializer=tf.constant(-999.), trainable=False)
+                                    initializer=tf.constant(999.), trainable=False)
             
             with tf.name_scope('main_graph'):
                 # create model
@@ -130,26 +130,26 @@ def main(_):
                             update3 = tf.identity(worker_loss) # placeholder
                             return (_, update1, update2, update3)
                             
-                        updates = tf.cond(
+                        update_tuple = tf.cond(
                                         tf.equal(best_worker_idx, worker_idx),
                                         true_fn=do_not_pull,
                                         false_fn=do_pull,
                                         )
-                        return updates
+                        return update_tuple
                     
-                    update = tf.cond(
-                                    tf.greater(worker_loss, best_worker_loss), 
+                    update_weights = tf.cond(
+                                    tf.less(worker_loss, best_worker_loss), 
                                     true_fn=push_weights, 
                                     false_fn=pull_weights,
                                     )
-                    # for debug 1 
+                    # # for debug 1 
                     # _ = tf.Print(
                     #         input_=[worker_loss, best_worker_loss],
                     #         data=[worker_loss, best_worker_loss, best_worker_idx],
                     #         )
-                    # return _, update
+                    # return _, update_weights
                     
-                    return update
+                    return update_weights
 
                 do_exploit = exploit(
                                 worker_idx, theta, loss, 
@@ -161,9 +161,49 @@ def main(_):
                     
                 do_explore = explore(h)
                 
+            with tf.name_scope('update_graph'):
+                """
+                update global best worker at each step
+                """
+                
+                def update(
+                        worker_idx, theta, loss,
+                        best_worker_idx, best_worker_weight, best_worker_loss
+                        ):
+                        """return assign ops"""
+                        def do_update():
+                            """update best worker stats"""
+                            # we dont exploit hyperparams in this model, so no update_best_hyperparams
+                            update_best_loss_ops = best_worker_loss.assign(loss)
+                            update_best_weight_ops = best_worker_weight.assign(theta)
+                            update_best_idx_ops = best_worker_idx.assign(worker_idx)
+                            
+                            return (update_best_loss_ops, update_best_weight_ops, update_best_idx_ops)
+                            
+                        def do_not_update():
+                            """current loss is not better than best worker loss, so do nothing"""
+                            update_best_loss_ops = tf.identity(loss)
+                            update_best_weight_ops = tf.identity(theta)
+                            update_best_idx_ops = tf.identity(worker_idx)
+                            
+                            return (update_best_loss_ops, update_best_weight_ops, update_best_idx_ops)
+                        
+                        update_best_worker_ops = tf.cond(
+                                                tf.less(loss, best_worker_loss), 
+                                                true_fn=do_update, 
+                                                false_fn=do_not_update,
+                                                )
+                                                
+                        return update_best_worker_ops
+                
+                do_update = update(
+                                worker_idx, theta, loss, 
+                                best_worker_idx, best_worker_weight, best_worker_loss
+                                )
+                
             
             with tf.train.MonitoredTrainingSession(master=server.target,
-                                                is_chief=1) as mon_sess:
+                                                is_chief=True) as mon_sess:
 
                 
                 # create log writer object (log from each machine)
@@ -171,7 +211,7 @@ def main(_):
                 
                 for step in range(50):                    
                     summary, h_, theta_, loss_, _= mon_sess.run([merged, h, theta, loss, train_step])
-                    print("Worker {}, Step {}, h = {}, theta = {}, loss = {:0.3f}".format(
+                    print("Worker {}, Step {}, h = {}, theta = {}, loss = {:0.6f}".format(
                                                                                     FLAGS.task_index,
                                                                                     step,
                                                                                     h_,
@@ -183,6 +223,8 @@ def main(_):
                     if step % 5 == 0:
                         mon_sess.run([do_exploit]) # exploit
                         mon_sess.run([do_explore]) # explore
+                        
+                    mon_sess.run([do_update]) # update
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
