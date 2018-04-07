@@ -69,9 +69,10 @@ def main(_):
                 
                 loss = tf.square((obj - surrogate_obj))
                 
-                optimizer = tf.train.AdamOptimizer(1e-4)
+                optimizer = tf.train.AdamOptimizer(1e-1)
                 train_step = optimizer.minimize(loss)
                 
+                tf.summary.scalar('surrogate_obj', surrogate_obj)
                 tf.summary.scalar('loss', loss)
                 merged = tf.summary.merge_all()
             
@@ -168,7 +169,7 @@ def main(_):
                 # create log writer object (log from each machine)
                 writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
                 
-                for step in range(200):                    
+                for step in range(50):                    
                     summary, h_, theta_, loss_, _= mon_sess.run([merged, h, theta, loss, train_step])
                     print("Worker {}, Step {}, h = {}, theta = {}, loss = {:0.3f}".format(
                                                                                     FLAGS.task_index,
