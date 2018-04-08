@@ -98,37 +98,41 @@ def main(_):
                     """
                     
                     def push_weights():
+                        """update best worker stats"""
                         _ = tf.Print( # add print node to the graph
                                 input_=tf.constant(1.), # do nothing
                                 data=[], # do nothing
                                 message="Optimal weights found on Worker-{}".format(FLAGS.task_index)
                                 ) 
-                        update1 = best_worker_weight.assign(worker_weight)
-                        update2 = best_worker_idx.assign(worker_idx)
-                        update3 = best_worker_loss.assign(worker_loss)
+                        update_weights_ops = best_worker_weight.assign(worker_weight)
+                        update_idx_ops = best_worker_idx.assign(worker_idx)
+                        update_loss_ops = best_worker_loss.assign(worker_loss)
                         
-                        return (_, update1, update2, update3)
+                        return (_, update_weights_ops, update_idx_ops, update_loss_ops)
                         
                     def pull_weights():
+                        """take best worker's weights"""
                         def do_not_pull():
+                            """current worker is the best worker, do nothing"""
                             _ = tf.Print(
                                     input_=tf.constant(1.),
                                     data=[], 
                                     message="Continue with current weights")
-                            update1 = tf.identity(worker_weight) # placeholder
-                            update2 = tf.identity(worker_idx) # placeholder 
-                            update3 = tf.identity(worker_loss) # placeholder
-                            return (_, update1, update2, update3)
+                            no_ops_1 = tf.identity(worker_weight) 
+                            no_ops_2 = tf.identity(worker_idx)
+                            no_ops_3  = tf.identity(worker_loss)
+                            return (_, no_ops_1, no_ops_2, no_ops_3)
                         
                         def do_pull():
+                            """current worker isn't the best worker, so inherit its weights"""
                             _ = tf.Print(
                                     input_=best_worker_idx,
                                     data=[best_worker_idx], 
                                     message="Inherited optimal weights from Worker-")
-                            update1 = worker_weight.assign(best_worker_weight)
-                            update2 = tf.identity(worker_idx) # placeholder 
-                            update3 = tf.identity(worker_loss) # placeholder
-                            return (_, update1, update2, update3)
+                            update_weights_ops = worker_weight.assign(best_worker_weight)
+                            no_ops_1 = tf.identity(worker_idx) # placeholder 
+                            no_ops_2 = tf.identity(worker_loss) # placeholder
+                            return (_, update_weights_ops, no_ops_1, no_ops_2)
                             
                         update_tuple = tf.cond(
                                         tf.equal(best_worker_idx, worker_idx),
@@ -175,18 +179,18 @@ def main(_):
                             """update best worker stats"""
                             # we dont exploit hyperparams in this model, so no update_best_hyperparams
                             update_best_loss_ops = best_worker_loss.assign(loss)
-                            update_best_weight_ops = best_worker_weight.assign(theta)
+                            update_best_weights_ops = best_worker_weight.assign(theta)
                             update_best_idx_ops = best_worker_idx.assign(worker_idx)
                             
-                            return (update_best_loss_ops, update_best_weight_ops, update_best_idx_ops)
+                            return (update_best_loss_ops, update_best_weights_ops, update_best_idx_ops)
                             
                         def do_not_update():
                             """current loss is not better than best worker loss, so do nothing"""
                             update_best_loss_ops = tf.identity(loss)
-                            update_best_weight_ops = tf.identity(theta)
+                            update_best_weights_ops = tf.identity(theta)
                             update_best_idx_ops = tf.identity(worker_idx)
                             
-                            return (update_best_loss_ops, update_best_weight_ops, update_best_idx_ops)
+                            return (update_best_loss_ops, update_best_weights_ops, update_best_idx_ops)
                         
                         update_best_worker_ops = tf.cond(
                                                 tf.less(loss, best_worker_loss), 
