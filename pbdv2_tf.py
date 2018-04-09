@@ -3,6 +3,7 @@ import sys
 import os
 import numpy as np
 import tensorflow as tf
+import time
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -42,8 +43,8 @@ def main(_):
             
             with tf.name_scope('global_variables'):
                 global_weights = tf.contrib.lookup.MutableHashTable(
-                                    key_dtype=tf.string, # e.g 'weights{idx}'
-                                    value_dtype=tf.float32, # weights
+                                    key_dtype=tf.string,
+                                    value_dtype=tf.float32,
                                     default_value=[999.,999.],
                                     )
                 
@@ -70,9 +71,6 @@ def main(_):
             with tf.name_scope('update_graph'):
                 """update worker stats in population"""
                 def update():
-                    # global_weights_ops = global_weights.insert(tf.constant('weights{}'.format(FLAGS.task_index)), theta)
-                    # global_loss_ops = global_loss.insert(tf.constant('loss{}'.format(FLAGS.task_index)), loss)
-                    
                     global_weights_ops = global_weights.insert(tf.constant(str(FLAGS.task_index)), theta)
                     global_loss_ops = global_loss.insert(tf.constant(str(FLAGS.task_index)), loss)
                     
@@ -86,66 +84,88 @@ def main(_):
                     # initialize
                     worker_index_summation = tf.constant(0)
                     
-                    def cond(index):
+                    best_loss = tf.constant(999.)
+                    best_idx = tf.constant(-1)
+                    
+                    def cond(index, best_loss, best_idx):
                         return tf.less(index, len(worker_hosts))
                         
-                    def body(index):
+                    def body(index, best_loss, best_idx):
                         """
                         compares worker loss with population member loss (in a loop)
                         returns best loss
                         """
-                        member_loss = global_loss.lookup('loss' + str(FLAGS.task_index))
-                        best_loss = tf.cond(
-                                        tf.equal(best_worker_idx, worker_idx),
-                                        true_fn=do_not_pull,
-                                        false_fn=do_pull,
-                                        )
+                        def update_best_loss():
+                            return member_loss, index
                         
+                        def keep_best_loss():
+                            return best_loss, best_idx
+                            
+                        member_loss = global_loss.lookup(tf.as_string(index))
+                        best_loss, best_idx = tf.cond(
+                                        member_loss < best_loss,
+                                        true_fn=update_best_loss,
+                                        false_fn=keep_best_loss,
+                                        )
+                                        
+                        return index+1, best_loss, best_idx
                     
-                    
-                    return tf.while_loop(cond=cond, body=body, loop_vars=[worker_index_summation, value], back_prop=False)
+                    return tf.while_loop(
+                                    cond=cond, 
+                                    body=body, 
+                                    loop_vars=[worker_index_summation, best_loss, best_idx], 
+                                    back_prop=False
+                                    )
                     
                 def exploit():
                     """returns a weight assign op"""
-                    best_worker_idx = find_best_worker_idx()
-
-                     return
+                    _, best_worker_loss, best_worker_idx = find_best_worker_idx()
                     
+                    def inherit_weights():
+                        _ = tf.Print(
+                                input_=best_worker_idx,
+                                data=[best_worker_idx], 
+                                message="Inherited optimal weights from Worker-")
+                                
+                        best_worker_weights = global_weights.lookup(tf.as_string(best_worker_idx))
+                        return _, theta.assign(best_worker_weights)
+                        
+                    def keep_weights():
+                        _ = tf.Print(
+                                input_=tf.constant(1),
+                                data=[], 
+                                message="Continue with current weights")
+                                
+                        return _, tf.identity(theta)
                     
+                    _, theta_ops = tf.cond(
+                                    tf.not_equal(best_worker_idx, tf.cast(worker_idx, tf.int32)),
+                                    true_fn=inherit_weights,
+                                    false_fn=keep_weights,
+                                    )
+                    # for debug
+                    # return loss, best_worker_loss, best_worker_idx
                 
+                    return _, theta_ops
+                    
                 do_exploit = exploit()
                 
-                
-                
-            with tf.name_scope('print_graph'):
-                def print_var(var, var_string):
-                    worker_index_summation = tf.constant(0)
-                    value = tf.constant(0.)
-    
+            with tf.name_scope('explore_graph'):
+                def explore():
+                    return h.assign(h + tf.random_normal(shape=[2]) * 0.1)
                     
-                    def cond(index, value):
-                        return tf.less(index, len(worker_hosts))
-                    
-                    def body(index, value):
-                        value = var.lookup(tf.as_string(index))
- 
-                        return index+1, value
-                        
-                    return tf.while_loop(cond=cond, body=body, loop_vars=[worker_index_summation, value], back_prop=False)
-                
-                print_loss = print_var(global_loss, 'loss')
+                do_explore = explore()
         
             with tf.train.MonitoredTrainingSession(master=server.target,
                                                 is_chief=True) as mon_sess:
 
-                
                 # create log writer object (log from each machine)
                 writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
-                
-                import time
-                time.sleep(2)
-                
-                for step in range(50):                    
+        
+                for step in range(50):
+                    
+                    time.sleep(0.25) # small delay
+                                    
                     summary, h_, theta_, loss_, _= mon_sess.run([merged, h, theta, loss, train_step])
                     print("Worker {}, Step {}, h = {}, theta = {}, loss = {:0.6f}".format(
                                                                                     FLAGS.task_index,
@@ -156,14 +176,11 @@ def main(_):
                                                                                     ))
                     writer.add_summary(summary, step)
                     
-                    # if step % 5 == 0:
-                    #     mon_sess.run([do_exploit]) # exploit
-                    #     mon_sess.run([do_explore]) # explore
-                    #     
+                    if step % 5 == 0:
+                        mon_sess.run([do_exploit]) # exploit
+                        mon_sess.run([do_explore]) # explore
+ 
                     mon_sess.run([do_update]) # update
-                    print(mon_sess.run([print_loss])) 
-                    
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
