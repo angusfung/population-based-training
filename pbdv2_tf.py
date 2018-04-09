@@ -64,6 +64,7 @@ def main(_):
                 optimizer = tf.train.AdamOptimizer(1e-1)
                 train_step = optimizer.minimize(loss)
                 
+                tf.summary.histogram('theta', theta)
                 tf.summary.scalar('surrogate_obj', surrogate_obj)
                 tf.summary.scalar('loss', loss)
                 merged = tf.summary.merge_all()
