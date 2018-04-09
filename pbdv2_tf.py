@@ -41,7 +41,6 @@ def main(_):
             
             
             with tf.name_scope('global_variables'):
-                
                 global_weights = tf.contrib.lookup.MutableHashTable(
                                     key_dtype=tf.string, # e.g 'weights{idx}'
                                     value_dtype=tf.float32, # weights
@@ -71,23 +70,65 @@ def main(_):
             with tf.name_scope('update_graph'):
                 """update worker stats in population"""
                 def update():
-                    global_weights_ops = global_weights.insert(tf.constant('weights{}'.format(FLAGS.task_index)), theta)
-                    global_loss_ops = global_loss.insert(tf.constant('loss{}'.format(FLAGS.task_index)), loss)
+                    # global_weights_ops = global_weights.insert(tf.constant('weights{}'.format(FLAGS.task_index)), theta)
+                    # global_loss_ops = global_loss.insert(tf.constant('loss{}'.format(FLAGS.task_index)), loss)
+                    
+                    global_weights_ops = global_weights.insert(tf.constant(str(FLAGS.task_index)), theta)
+                    global_loss_ops = global_loss.insert(tf.constant(str(FLAGS.task_index)), loss)
                     
                     return global_weights_ops, global_loss_ops
                     
                 do_update = update()
                 
+            with tf.name_scope('exploit_graph'):
+                """copy weights from the member in the population with the highest performance"""
+                def find_best_worker_idx():
+                    # initialize
+                    worker_index_summation = tf.constant(0)
+                    
+                    def cond(index):
+                        return tf.less(index, len(worker_hosts))
+                        
+                    def body(index):
+                        """
+                        compares worker loss with population member loss (in a loop)
+                        returns best loss
+                        """
+                        member_loss = global_loss.lookup('loss' + str(FLAGS.task_index))
+                        best_loss = tf.cond(
+                                        tf.equal(best_worker_idx, worker_idx),
+                                        true_fn=do_not_pull,
+                                        false_fn=do_pull,
+                                        )
+                        
+                    
+                    
+                    return tf.while_loop(cond=cond, body=body, loop_vars=[worker_index_summation, value], back_prop=False)
+                    
+                def exploit():
+                    """returns a weight assign op"""
+                    best_worker_idx = find_best_worker_idx()
+
+                     return
+                    
+                    
+                
+                do_exploit = exploit()
+                
+                
+                
             with tf.name_scope('print_graph'):
                 def print_var(var, var_string):
                     worker_index_summation = tf.constant(0)
                     value = tf.constant(0.)
+    
                     
                     def cond(index, value):
                         return tf.less(index, len(worker_hosts))
                     
                     def body(index, value):
-                        value = var.lookup(tf.constant('loss' + str(FLAGS.task_index)))
+                        value = var.lookup(tf.as_string(index))
+ 
                         return index+1, value
                         
                     return tf.while_loop(cond=cond, body=body, loop_vars=[worker_index_summation, value], back_prop=False)
@@ -115,13 +156,14 @@ def main(_):
                                                                                     ))
                     writer.add_summary(summary, step)
                     
-                    if step % 5 == 0:
-                        mon_sess.run([do_exploit]) # exploit
+                    # if step % 5 == 0:
+                    #     mon_sess.run([do_exploit]) # exploit
                     #     mon_sess.run([do_explore]) # explore
                     #     
                     mon_sess.run([do_update]) # update
-                print(mon_sess.run([print_loss])) 
+                    print(mon_sess.run([print_loss])) 
                     
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
