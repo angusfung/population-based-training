@@ -36,7 +36,7 @@ def main(_):
             W = tf.get_variable(
                     'W'.format(FLAGS.task_index), 
                     # values taken from https://arxiv.org/pdf/1611.07657.pdf
-                    initializer=tf.random_uniform(shape=[2], minval=[-2., -0.5], maxval=[1., 2.])) 
+                    initializer=tf.random_uniform(shape=[2], minval=[-2.,-0.5], maxval=[1.,2.])) 
             h = tf.get_variable('h', initializer=tf.random_uniform(shape=[2]), trainable=False)
             
             worker_idx = tf.constant(FLAGS.task_index, dtype=tf.float32)
@@ -103,7 +103,7 @@ def main(_):
                 
                 loss = tf.square((mueller_potential-model))
                 
-                optimizer = tf.train.AdamOptimizer(1e-3)
+                optimizer = tf.train.AdamOptimizer(1e-2)
                 train_step = optimizer.minimize(loss)
                 
                 # tf.summary.histogram('theta', theta)
@@ -127,7 +127,7 @@ def main(_):
                     # initialize
                     worker_index_summation = tf.constant(0)
                     
-                    best_loss = tf.constant(999.)
+                    best_loss = tf.constant(1e100)
                     best_idx = tf.constant(-1)
                     
                     def cond(index, best_loss, best_idx):
@@ -195,7 +195,7 @@ def main(_):
                 
             with tf.name_scope('explore_graph'):
                 def explore():
-                    return h.assign(h + tf.random_normal(shape=[2]) * 0.1)
+                    return h.assign(h + tf.random_normal(shape=[2]) * 0.01)
                     
                 do_explore = explore()
         
@@ -218,12 +218,14 @@ def main(_):
                                                                                     loss_
                                                                                     ))
                     writer.add_summary(summary, step)
-                    
+                
                     if step % 5 == 0:
                         mon_sess.run([do_exploit]) # exploit
                         mon_sess.run([do_explore]) # explore
  
                     mon_sess.run([do_update]) # update
+                    
+                    step += 1
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
