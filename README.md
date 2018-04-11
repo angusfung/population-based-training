@@ -43,6 +43,12 @@ python3 pbd_tf.py --ps_hosts=localhost:2222 --worker_hosts=localhost:2223,localh
 python3 pbd_tf.py --ps_hosts=localhost:2222 --worker_hosts=localhost:2223,localhost:2224 --job_name=worker --task_index=1 
 tensorboard --logdir=~/Desktop/Scripts/population-based-training-nn/logs
 ```
+
+# TODO:
+regularization?
+stronger model?
+use PBT to learn the learning rate instead of hand-tuning alpha?
+use more training steps
  
  
  
