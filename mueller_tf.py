@@ -60,6 +60,9 @@ def main(_):
         # otherwise replica_device_setter will put them on the ps
         
         with tf.device("/job:worker/task:{}".format(FLAGS.task_index)):
+            
+            worker_idx = tf.constant(FLAGS.task_index, dtype=tf.float32)
+            
             # weights X, Y
             W = tf.get_variable(
                     'W'.format(FLAGS.task_index), 
@@ -67,9 +70,8 @@ def main(_):
                     initializer=tf.random_uniform(shape=[2], minval=[-2.,-0.5,], maxval=[1.,2.,])) 
                     #initializer=tf.random_uniform(shape=[4], minval=[-2.,-0.5, -1., -1.], maxval=[1.,2., 1., 1.])) 
             h = tf.get_variable('h', initializer=tf.random_uniform(shape=[2]), trainable=False)
+            score = tf.get_variable('score', initializer=999., trainable=False)
             
-            worker_idx = tf.constant(FLAGS.task_index, dtype=tf.float32)
-        
         # use replica_device_setter to automatically set device-ops
         with tf.device(tf.train.replica_device_setter(
             worker_device="/job:worker/task:%d" % FLAGS.task_index,
@@ -90,6 +92,12 @@ def main(_):
                                     )
                 
                 global_loss = tf.contrib.lookup.MutableHashTable(
+                                    key_dtype=tf.string, 
+                                    value_dtype=tf.float32,
+                                    default_value=999.,
+                                    )
+                # validation or test set
+                global_score = tf.contrib.lookup.MutableHashTable( 
                                     key_dtype=tf.string, 
                                     value_dtype=tf.float32,
                                     default_value=999.,
@@ -134,13 +142,13 @@ def main(_):
                     A_3 * tf.exp(a_3 * tf.square((W[0]-x0_3)) + b_3 * (W[0]-x0_3) * (W[1]-y0_3) + c_3 * tf.square((W[1]-y0_3))) + \
                     A_4 * tf.exp(a_4 * tf.square((W[0]-x0_4)) + b_4 * (W[0]-x0_4) * (W[1]-y0_4) + c_4 * tf.square((W[1]-y0_4)))
                     
-                # model = tf.nn.relu(W[3]*tf.nn.relu(W[2]*tf.nn.relu(tf.reduce_sum(h*W[0:1]))))
+                # model = tf.nn.relu(W[3]*tf.nn.relu(W[2]*tf.nn.relu(tf.reduce_sum(h*W[0:1])))) # can add reg
                 model = tf.nn.relu(tf.reduce_sum(h*W[0:1]))
                 
-                # loss = tf.square((mueller_potential-model))
-                loss = mueller_potential
+                loss = tf.square((mueller_potential-model))
+                # loss = mueller_potential
                 
-                optimizer = tf.train.AdamOptimizer(1e-1)
+                optimizer = tf.train.AdamOptimizer(1e-2)
                 train_step = optimizer.minimize(loss)
                 
                 # tf.summary.histogram('W', W)
@@ -156,63 +164,55 @@ def main(_):
                     global_weights_ops = global_weights.insert(tf.constant(str(FLAGS.task_index)), W)
                     global_hyperparams_ops = global_hyperparams.insert(tf.constant(str(FLAGS.task_index)), h)
                     global_loss_ops = global_loss.insert(tf.constant(str(FLAGS.task_index)), loss)
+                    global_score_ops = global_score.insert(tf.constant(str(FLAGS.task_index)), score)
                     
-                    return global_weights_ops, global_hyperparams_ops, global_loss_ops
+                    return global_weights_ops, global_hyperparams_ops, global_loss_ops, global_score_ops
                     
                 do_update = update()
                 
             with tf.name_scope('exploit_graph'):
-                """copy weights from the member in the population with the highest performance"""
+                """copy weights from the member in the population with the highest performance (based on score, not loss)"""
                 def find_best_worker_idx():
                     # initialize
                     worker_index_summation = tf.constant(0)
                     
-                    best_loss = tf.constant(1e100)
+                    best_score = tf.constant(1e100)
                     best_idx = tf.constant(-1)
                     
-                    def cond(index, best_loss, best_idx):
+                    def cond(index, best_score, best_idx):
                         return tf.less(index, len(worker_hosts))
                         
-                    def body(index, best_loss, best_idx):
+                    def body(index, best_score, best_idx):
                         """
-                        compares worker loss with population member loss (in a loop)
-                        returns best loss
+                        compares worker score with population member score (in a loop)
+                        returns best score
                         """
-                        def update_best_loss():
-                            return member_loss, index
+                        def update_best_score():
+                            return member_score, index
                         
-                        def keep_best_loss():
-                            return best_loss, best_idx
+                        def keep_best_score():
+                            return best_score, best_idx
                             
-                        member_loss = global_loss.lookup(tf.as_string(index))
-                        best_loss, best_idx = tf.cond(
-                                        member_loss < best_loss,
-                                        true_fn=update_best_loss,
-                                        false_fn=keep_best_loss,
+                        member_score = global_score.lookup(tf.as_string(index))
+                        best_score, best_idx = tf.cond(
+                                        member_score < best_score,
+                                        true_fn=update_best_score,
+                                        false_fn=keep_best_score,
                                         )
                                         
-                        return index+1, best_loss, best_idx
+                        return index+1, best_score, best_idx
                     
                     return tf.while_loop(
                                     cond=cond, 
                                     body=body, 
-                                    loop_vars=[worker_index_summation, best_loss, best_idx], 
+                                    loop_vars=[worker_index_summation, best_score, best_idx], 
                                     back_prop=False
                                     )
                     
                 def exploit():
                     """returns a weight and hyperparams assign op"""
-                    _, best_worker_loss, best_worker_idx = find_best_worker_idx()
-                    
-                    # def inherit_weights():
-                    #     _ = tf.Print(
-                    #             input_=best_worker_idx,
-                    #             data=[best_worker_idx], 
-                    #             message="Inherited optimal weights from Worker-")
-                    #             
-                    #     best_worker_weights = global_weights.lookup(tf.as_string(best_worker_idx))
-                    #     return _, W.assign(best_worker_weights), tf.constant(1)
-                    
+                    _, best_worker_score, best_worker_idx = find_best_worker_idx()
+                                        
                     def inherit_weights_hyperparams():
                         _ = tf.Print(
                                 input_=best_worker_idx,
@@ -237,9 +237,10 @@ def main(_):
                                                 false_fn=keep_weights,
                                                 )
                     # for debug
-                    # return loss, best_worker_loss, best_worker_idx
-                
-                    return _, W_ops, h_ops, explore_flag
+                    # return loss, best_worker_loss, best_worker_idx, explore_flag
+                    # return _, W_ops, h_ops, explore_flag, score, best_worker_score, best_worker_idx
+                    
+                    return _, W_ops, h_ops, explore_flag, score
                     
                 do_exploit = exploit()
                 
@@ -248,7 +249,14 @@ def main(_):
                     return h.assign(h + tf.random_normal(shape=[2]) * 0.01)
                     
                 do_explore = explore()
-        
+                
+            with tf.name_scope('eval_graph'):
+                # evaluate current model e.g test or validation set
+                
+                def eval():
+                    return score.assign(mueller_potential)
+                do_eval = eval()
+                
             with tf.train.MonitoredTrainingSession(master=server.target,
                                                 is_chief=True) as mon_sess:
 
@@ -257,20 +265,28 @@ def main(_):
                 
                 weights_history = []
                 
-                for step in range(50):
+                for step in range(200):
                     
                     time.sleep(0.25) # small delay
                                     
-                    summary, h_, W_, loss_, _= mon_sess.run([merged, h, W, loss, train_step])
-                    print("Worker {}, Step {}, h = {}, W = {}, loss = {:0.6f}".format(
-                                                                                    FLAGS.task_index,
-                                                                                    step,
-                                                                                    h_,
-                                                                                    W_,
-                                                                                    loss_
-                                                                                    ))
+                    summary, h_, W_, loss_, _ = mon_sess.run([merged, h, W, loss, train_step]) # step
+                    score_ = mon_sess.run([do_eval]) # eval
+                    
+                    # note: does updating P make sense here? step could potentially 
+                    # lead to a viable theta in which case we dont want to exploit
+                    
+                    mon_sess.run([do_update]) # update
+                    
+                    print("Worker {}, Step {}, h = {}, W = {}, loss = {:0.6f}, score = {:0.6f}".format(
+                                                                                                FLAGS.task_index,
+                                                                                                step,
+                                                                                                h_,
+                                                                                                W_,
+                                                                                                loss_,
+                                                                                                score_[0],
+                                                                                                ))
                     writer.add_summary(summary, step)
-                
+    
                     if step % 5 == 0:
                         _ = mon_sess.run([do_exploit]) # exploit
                         explore_flag = _[0][3]
