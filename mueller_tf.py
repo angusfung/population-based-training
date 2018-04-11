@@ -4,9 +4,37 @@ import os
 import numpy as np
 import tensorflow as tf
 import time
+import matplotlib.pyplot as plt
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
+# plotting
+def mueller(X,Y):
+    A = [-200., -100., -170., 15.]
+    a = [-1., -1., -6.5, 0.7]
+    b = [0., 0., 11., 0.6]
+    c = [-10., -10., -6.5, 0.7]
+    
+    X0 = [1., 0., -0.5, -1.]
+    Y0 = [0., 0.5, 1.5, 1.]
+    
+    Z = 0
+    
+    for i in range(4):
+        Z += A[i]*np.exp(a[i]*(X-X0[i])**2 + b[i]*(X-X0[i])*(Y-Y0[i]) + c[i]*(Y-Y0[i])**2)
+    return Z
+    
+def plot(ax=None, minx=-1.5, maxx=1.2, miny=-0.2, maxy=2, weights_history=None):
+    grid_width = max(maxx-minx, maxy-miny) / 200.0
+    xx, yy = np.mgrid[minx : maxx : grid_width, miny : maxy : grid_width]
+    V = mueller(xx, yy)
+    ax.contourf(xx, yy, V.clip(max=200), 50)
+    
+    X = [_[0] for _ in weights_history]
+    Y = [_[1] for _ in weights_history]
+    
+    ax.scatter(X, Y, color='b', s=2)
+    
 def main(_):
     # we need to provide all ps and worker info to each server so they are aware of each other
     ps_hosts = FLAGS.ps_hosts.split(",")
@@ -36,7 +64,8 @@ def main(_):
             W = tf.get_variable(
                     'W'.format(FLAGS.task_index), 
                     # values taken from https://arxiv.org/pdf/1611.07657.pdf
-                    initializer=tf.random_uniform(shape=[2], minval=[-2.,-0.5], maxval=[1.,2.])) 
+                    initializer=tf.random_uniform(shape=[2], minval=[-2.,-0.5,], maxval=[1.,2.,])) 
+                    #initializer=tf.random_uniform(shape=[4], minval=[-2.,-0.5, -1., -1.], maxval=[1.,2., 1., 1.])) 
             h = tf.get_variable('h', initializer=tf.random_uniform(shape=[2]), trainable=False)
             
             worker_idx = tf.constant(FLAGS.task_index, dtype=tf.float32)
@@ -51,7 +80,13 @@ def main(_):
                 global_weights = tf.contrib.lookup.MutableHashTable(
                                     key_dtype=tf.string,
                                     value_dtype=tf.float32,
-                                    default_value=[999.,999.],
+                                    default_value=[999.,999.,]#999.,999.],
+                                    )
+                                    
+                global_hyperparams = tf.contrib.lookup.MutableHashTable(
+                                    key_dtype=tf.string,
+                                    value_dtype=tf.float32,
+                                    default_value=[999.,999.]
                                     )
                 
                 global_loss = tf.contrib.lookup.MutableHashTable(
@@ -62,7 +97,7 @@ def main(_):
                                 
             with tf.name_scope('main_graph'):
                 
-                # define constants
+                # define constants, no lists in tf :/
                 A_1 = tf.constant(-200.)
                 A_2 = tf.constant(-100.)
                 A_3 = tf.constant(-170.)
@@ -99,25 +134,30 @@ def main(_):
                     A_3 * tf.exp(a_3 * tf.square((W[0]-x0_3)) + b_3 * (W[0]-x0_3) * (W[1]-y0_3) + c_3 * tf.square((W[1]-y0_3))) + \
                     A_4 * tf.exp(a_4 * tf.square((W[0]-x0_4)) + b_4 * (W[0]-x0_4) * (W[1]-y0_4) + c_4 * tf.square((W[1]-y0_4)))
                     
-                model = tf.nn.relu(tf.reduce_sum(h*W))
+                # model = tf.nn.relu(W[3]*tf.nn.relu(W[2]*tf.nn.relu(tf.reduce_sum(h*W[0:1]))))
+                model = tf.nn.relu(tf.reduce_sum(h*W[0:1]))
                 
-                loss = tf.square((mueller_potential-model))
+                # loss = tf.square((mueller_potential-model))
+                loss = mueller_potential
                 
-                optimizer = tf.train.AdamOptimizer(1e-2)
+                optimizer = tf.train.AdamOptimizer(1e-1)
                 train_step = optimizer.minimize(loss)
                 
-                # tf.summary.histogram('theta', theta)
-                # tf.summary.scalar('surrogate_obj', surrogate_obj)
+                # tf.summary.histogram('W', W)
+                tf.summary.scalar('model', model)
+                tf.summary.scalar('meuller_potential', mueller_potential)
                 tf.summary.scalar('loss', loss)
+                
                 merged = tf.summary.merge_all()
                 
             with tf.name_scope('update_graph'):
                 """update worker stats in population"""
                 def update():
                     global_weights_ops = global_weights.insert(tf.constant(str(FLAGS.task_index)), W)
+                    global_hyperparams_ops = global_hyperparams.insert(tf.constant(str(FLAGS.task_index)), h)
                     global_loss_ops = global_loss.insert(tf.constant(str(FLAGS.task_index)), loss)
                     
-                    return global_weights_ops, global_loss_ops
+                    return global_weights_ops, global_hyperparams_ops, global_loss_ops
                     
                 do_update = update()
                 
@@ -161,35 +201,45 @@ def main(_):
                                     )
                     
                 def exploit():
-                    """returns a weight assign op"""
+                    """returns a weight and hyperparams assign op"""
                     _, best_worker_loss, best_worker_idx = find_best_worker_idx()
                     
-                    def inherit_weights():
+                    # def inherit_weights():
+                    #     _ = tf.Print(
+                    #             input_=best_worker_idx,
+                    #             data=[best_worker_idx], 
+                    #             message="Inherited optimal weights from Worker-")
+                    #             
+                    #     best_worker_weights = global_weights.lookup(tf.as_string(best_worker_idx))
+                    #     return _, W.assign(best_worker_weights), tf.constant(1)
+                    
+                    def inherit_weights_hyperparams():
                         _ = tf.Print(
                                 input_=best_worker_idx,
                                 data=[best_worker_idx], 
-                                message="Inherited optimal weights from Worker-")
+                                message="Inherited optimal weights and hyperparams from Worker-")
                                 
                         best_worker_weights = global_weights.lookup(tf.as_string(best_worker_idx))
-                        return _, W.assign(best_worker_weights)
-                        
+                        best_worker_hyperparams = global_hyperparams.lookup(tf.as_string(best_worker_idx))
+                        return _, W.assign(best_worker_weights), h.assign(best_worker_hyperparams), tf.constant(1)
+                    
                     def keep_weights():
                         _ = tf.Print(
                                 input_=tf.constant(1),
                                 data=[], 
                                 message="Continue with current weights")
                                 
-                        return _, tf.identity(W)
+                        return _, tf.identity(W), tf.identity(h), tf.constant(0)
                     
-                    _, W_ops = tf.cond(
-                                    tf.not_equal(best_worker_idx, tf.cast(worker_idx, tf.int32)),
-                                    true_fn=inherit_weights,
-                                    false_fn=keep_weights,
-                                    )
+                    _, W_ops, h_ops, explore_flag = tf.cond(
+                                                tf.not_equal(best_worker_idx, tf.cast(worker_idx, tf.int32)),
+                                                true_fn=inherit_weights_hyperparams,
+                                                false_fn=keep_weights,
+                                                )
                     # for debug
                     # return loss, best_worker_loss, best_worker_idx
                 
-                    return _, W_ops
+                    return _, W_ops, h_ops, explore_flag
                     
                 do_exploit = exploit()
                 
@@ -204,7 +254,9 @@ def main(_):
 
                 # create log writer object (log from each machine)
                 writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
-        
+                
+                weights_history = []
+                
                 for step in range(50):
                     
                     time.sleep(0.25) # small delay
@@ -220,12 +272,23 @@ def main(_):
                     writer.add_summary(summary, step)
                 
                     if step % 5 == 0:
-                        mon_sess.run([do_exploit]) # exploit
-                        mon_sess.run([do_explore]) # explore
- 
+                        _ = mon_sess.run([do_exploit]) # exploit
+                        explore_flag = _[0][3]
+                        
+                        if explore_flag:
+                            mon_sess.run([do_explore]) # explore
+                        
                     mon_sess.run([do_update]) # update
                     
+                    weights_history.append(W_)
+                    
                     step += 1
+            
+            if FLAGS.task_index == 0: # arbitrary worker
+                
+                plot(ax=plt.gca(), weights_history=weights_history)
+                plt.show()
+            
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
