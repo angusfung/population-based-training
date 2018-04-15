@@ -5,6 +5,8 @@ import numpy as np
 import tensorflow as tf
 import time
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -24,16 +26,37 @@ def mueller(X,Y):
         Z += A[i]*np.exp(a[i]*(X-X0[i])**2 + b[i]*(X-X0[i])*(Y-Y0[i]) + c[i]*(Y-Y0[i])**2)
     return Z
     
-def plot(ax=None, minx=-1.5, maxx=1.2, miny=-0.2, maxy=2, weights_history=None):
+def plot(minx=-1.5, maxx=1.2, miny=-0.2, maxy=2, weights_history=None):
+    
+    fig = plt.figure()
+    
+    # plot mueller contour
     grid_width = max(maxx-minx, maxy-miny) / 200.0
     xx, yy = np.mgrid[minx : maxx : grid_width, miny : maxy : grid_width]
     V = mueller(xx, yy)
-    ax.contourf(xx, yy, V.clip(max=200), 50)
     
+    ax=plt.gca()
+    ax.contourf(xx, yy, V.clip(max=200), 50)
+        
     X = [_[0] for _ in weights_history]
     Y = [_[1] for _ in weights_history]
+    size = [20]*len(X)
+    colors = ["g"]*len(X)
     
-    ax.scatter(X, Y, color='b', s=2)
+    plt.xlim(-1.5, 1.2)
+    plt.ylim(-0.2, 2)
+    graph = plt.scatter([], [])
+    
+    def animate(i):
+        graph.set_offsets(np.vstack((X[:i+1], Y[:i+1])).T)
+        graph.set_sizes(size[:i+1])
+        graph.set_facecolors(colors[:i+1])
+        return graph
+    
+    ani = FuncAnimation(fig, animate, frames=len(X), interval=200)
+    
+    plt.show()
+    # ax.scatter(X, Y, color='b', s=2)
     
 def main(_):
     # we need to provide all ps and worker info to each server so they are aware of each other
@@ -70,10 +93,9 @@ def main(_):
                     'W'.format(FLAGS.task_index), 
                     # values taken from https://arxiv.org/pdf/1611.07657.pdf
                     initializer=tf.random_uniform(shape=[2], minval=[-2.,-0.5], maxval=[1.,2.])) 
-                    #initializer=tf.random_uniform(shape=[4], minval=[-2.,-0.5, -1., -1.], maxval=[1.,2., 1., 1.])) 
                     
             # hyperparameters schedules 
-            h = tf.get_variable('h', initializer=tf.random_uniform(shape=[num_hyperparams]), trainable=False)
+            h = tf.get_variable('h', initializer=tf.random_uniform(minval=-1., maxval=1., shape=[num_hyperparams]), trainable=False)
             alpha = tf.get_variable('alpha', initializer=1e-1, trainable=False) # learning rate
             
             score = tf.get_variable('score', initializer=999., trainable=False)
@@ -153,25 +175,19 @@ def main(_):
                     A_3 * tf.exp(a_3 * tf.square((W[0]-x0_3)) + b_3 * (W[0]-x0_3) * (W[1]-y0_3) + c_3 * tf.square((W[1]-y0_3))) + \
                     A_4 * tf.exp(a_4 * tf.square((W[0]-x0_4)) + b_4 * (W[0]-x0_4) * (W[1]-y0_4) + c_4 * tf.square((W[1]-y0_4)))
                     
-                # model = tf.nn.relu(W[3]*tf.nn.relu(W[2]*tf.nn.relu(tf.reduce_sum(h*W[0:1])))) # can add reg
-                # model = tf.nn.relu(tf.reduce_sum(h*W[0:1]))
-                # model = tf.nn.relu(tf.nn.relu(h[0] * W[0]) * h[1] * W[1])
-                # model = tf.nn.relu(tf.nn.relu(W[0]) * W[1])
-                # model = tf.sigmoid(tf.sigmoid(W[0]) * W[1])
-                # model = tf.nn.relu(tf.nn.relu(tf.nn.relu(h[0] * W[0]) * h[1] * W[1]) * W[2])
                 
                 model = \
-                    h[0] * tf.exp(h[4] * tf.square((W[0]-x0_1)) + h[8] * (W[0]-x0_1) * (W[1]-y0_1) + h[12] * tf.square((W[1]-y0_1))) + \
-                    h[1] * tf.exp(h[5] * tf.square((W[0]-x0_2)) + h[9] * (W[0]-x0_2) * (W[1]-y0_2) + h[13] * tf.square((W[1]-y0_2))) + \
-                    h[2] * tf.exp(h[6] * tf.square((W[0]-x0_3)) + h[10] * (W[0]-x0_3) * (W[1]-y0_3) + h[14] * tf.square((W[1]-y0_3))) + \
-                    h[3] * tf.exp(h[7] * tf.square((W[0]-x0_4)) + h[11] * (W[0]-x0_4) * (W[1]-y0_4) + h[15] * tf.square((W[1]-y0_4)))
+                    A_1 * tf.exp(h[4] * tf.square((W[0]-x0_1)) + h[8] * (W[0]-x0_1) * (W[1]-y0_1) + c_1 * tf.square((W[1]-y0_1))) + \
+                    A_2 * tf.exp(h[5] * tf.square((W[0]-x0_2)) + h[9] * (W[0]-x0_2) * (W[1]-y0_2) + c_2 * tf.square((W[1]-y0_2))) + \
+                    A_3 * tf.exp(a_3  * tf.square((W[0]-x0_3)) + b_3 * (W[0]-x0_3)  * (W[1]-y0_3) + c_3 * tf.square((W[1]-y0_3))) + \
+                    A_4 * tf.exp(h[7] * tf.square((W[0]-x0_4)) + h[11] * (W[0]-x0_4) * (W[1]-y0_4) + h[15] * tf.square((W[1]-y0_4)))
                 
-                # mueller_constant = tf.stop_gradient(mueller_potential)
-                # loss = tf.square((mueller_constant-model))
+                mueller_constant = tf.stop_gradient(mueller_potential)
+                loss = tf.square((mueller_constant-model))
                 
                 # loss = tf.square((mueller_potential-model))
                 # loss = mueller_potential
-                loss = model
+                # loss = model
                 
                 optimizer = tf.train.AdamOptimizer(alpha)
                 train_step = optimizer.minimize(loss)
@@ -188,10 +204,12 @@ def main(_):
                 def update():
                     global_weights_ops = global_weights.insert(tf.constant(str(FLAGS.task_index)), W)
                     global_hyperparams_ops = global_hyperparams.insert(tf.constant(str(FLAGS.task_index)), h)
+                    global_alpha_ops = global_alpha.insert(tf.constant(str(FLAGS.task_index)), alpha)
+                    
                     global_loss_ops = global_loss.insert(tf.constant(str(FLAGS.task_index)), loss)
                     global_score_ops = global_score.insert(tf.constant(str(FLAGS.task_index)), score)
                     
-                    return global_weights_ops, global_hyperparams_ops, global_loss_ops, global_score_ops
+                    return global_weights_ops, global_hyperparams_ops, global_loss_ops, global_score_ops, global_alpha_ops
                     
                 do_update = update()
                 
@@ -248,7 +266,7 @@ def main(_):
                         best_worker_hyperparams = global_hyperparams.lookup(tf.as_string(best_worker_idx))
                         best_worker_alpha = global_alpha.lookup(tf.as_string(best_worker_idx))
                         return _, W.assign(best_worker_weights), h.assign(best_worker_hyperparams), \
-                            alpha.assign(best_worker_alpha), tf.constant(1)
+                            alpha.assign(best_worker_alpha), tf.constant(1), best_worker_idx
                     
                     def keep_weights():
                         _ = tf.Print(
@@ -256,9 +274,9 @@ def main(_):
                                 data=[], 
                                 message="Continue with current weights")
                                 
-                        return _, tf.identity(W), tf.identity(h), tf.identity(alpha), tf.constant(0) 
+                        return _, tf.identity(W), tf.identity(h), tf.identity(alpha), tf.constant(0), tf.cast(worker_idx, tf.int32)
                     
-                    _, W_ops, h_ops, alpha_ops, explore_flag = tf.cond(
+                    _, W_ops, h_ops, alpha_ops, explore_flag, idx = tf.cond(
                                                 tf.not_equal(best_worker_idx, tf.cast(worker_idx, tf.int32)),
                                                 true_fn=inherit_weights_hyperparams,
                                                 false_fn=keep_weights,
@@ -267,17 +285,19 @@ def main(_):
                     # return loss, best_worker_loss, best_worker_idx, explore_flag
                     # return _, W_ops, h_ops, explore_flag, score, best_worker_score, best_worker_idx
                     
-                    return _, W_ops, h_ops, alpha_ops, explore_flag
+                    return _, W_ops, h_ops, alpha_ops, explore_flag, idx
                     
                 do_exploit = exploit()
                 
             with tf.name_scope('explore_graph'):
                 def explore():
-                    h_ops = h.assign(h + tf.random_normal(shape=[num_hyperparams]) * 0.01)
-                    
                     # 1.2 or 0.8 with equal probability
                     p = tf.random_uniform(shape=[], minval=0, maxval=1, dtype=tf.int32)
                     p_float = tf.cast(p, tf.float32)
+                    
+                    # h_ops = h.assign(h + tf.random_normal(shape=[num_hyperparams]) * 0.01)
+                    
+                    h_ops = h.assign(h * p_float* 1.2 + h * (1-p_float) * 0.8)
                     
                     alpha_ops = alpha.assign(alpha * p_float* 1.2 + alpha * (1-p_float) * 0.8)
                     return h_ops, alpha_ops
@@ -299,9 +319,9 @@ def main(_):
                 
                 weights_history = []
                 
-                for step in range(200):
+                for step in range(150):
                     
-                    time.sleep(0.25) # small delay
+                    time.sleep(0.1) # small delay
                                     
                     summary, h_, alpha_, W_, loss_, _ = mon_sess.run([merged, h, alpha, W, loss, train_step]) # step
                     score_ = mon_sess.run([do_eval]) # eval
@@ -324,7 +344,8 @@ def main(_):
     
                     if step % 5 == 0:
                         _ = mon_sess.run([do_exploit]) # exploit
-                        explore_flag = _[0][3]
+                        explore_flag = _[0][4]
+                        best_worker = _[0][5]
                         
                         if explore_flag:
                             mon_sess.run([do_explore]) # explore
@@ -335,10 +356,9 @@ def main(_):
                     
                     step += 1
             
-            if FLAGS.task_index == 0: # arbitrary worker
+            if FLAGS.task_index == 0: #best_worker: # arbitrary worker
                 
-                plot(ax=plt.gca(), weights_history=weights_history)
-                plt.show()
+                plot(weights_history=weights_history)
             
 
 if __name__ == "__main__":
