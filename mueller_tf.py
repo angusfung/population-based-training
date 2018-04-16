@@ -1,3 +1,4 @@
+
 import argparse
 import sys
 import os
@@ -95,7 +96,7 @@ def main(_):
                     initializer=tf.random_uniform(shape=[2], minval=[-2.,-0.5], maxval=[1.,2.])) 
                     
             # hyperparameters schedules 
-            h = tf.get_variable('h', initializer=tf.random_uniform(minval=-1., maxval=1., shape=[num_hyperparams]), trainable=False)
+            h = tf.get_variable('h', initializer=tf.random_uniform(minval=-10., maxval=10., shape=[num_hyperparams]), trainable=False)
             alpha = tf.get_variable('alpha', initializer=1e-1, trainable=False) # learning rate
             
             score = tf.get_variable('score', initializer=999., trainable=False)
@@ -175,19 +176,18 @@ def main(_):
                     A_3 * tf.exp(a_3 * tf.square((W[0]-x0_3)) + b_3 * (W[0]-x0_3) * (W[1]-y0_3) + c_3 * tf.square((W[1]-y0_3))) + \
                     A_4 * tf.exp(a_4 * tf.square((W[0]-x0_4)) + b_4 * (W[0]-x0_4) * (W[1]-y0_4) + c_4 * tf.square((W[1]-y0_4)))
                     
-                
                 model = \
                     A_1 * tf.exp(h[4] * tf.square((W[0]-x0_1)) + h[8] * (W[0]-x0_1) * (W[1]-y0_1) + c_1 * tf.square((W[1]-y0_1))) + \
                     A_2 * tf.exp(h[5] * tf.square((W[0]-x0_2)) + h[9] * (W[0]-x0_2) * (W[1]-y0_2) + c_2 * tf.square((W[1]-y0_2))) + \
-                    A_3 * tf.exp(a_3  * tf.square((W[0]-x0_3)) + b_3 * (W[0]-x0_3)  * (W[1]-y0_3) + c_3 * tf.square((W[1]-y0_3))) + \
-                    A_4 * tf.exp(h[7] * tf.square((W[0]-x0_4)) + h[11] * (W[0]-x0_4) * (W[1]-y0_4) + h[15] * tf.square((W[1]-y0_4)))
-                
-                mueller_constant = tf.stop_gradient(mueller_potential)
-                loss = tf.square((mueller_constant-model))
+                    A_3 * tf.exp(h[6] * tf.square((W[0]-x0_3)) + b_3 * (W[0]-x0_3) * (W[1]-y0_3) + c_3 * tf.square((W[1]-y0_3))) + \
+                    A_4 * tf.exp(h[7] * tf.square((W[0]-x0_4)) + b_4 * (W[0]-x0_4) * (W[1]-y0_4) + c_4 * tf.square((W[1]-y0_4)))
+                    
+                # mueller_constant = tf.stop_gradient(mueller_potential)
+                # loss = tf.square((mueller_constant-model))
                 
                 # loss = tf.square((mueller_potential-model))
                 # loss = mueller_potential
-                # loss = model
+                loss = model
                 
                 optimizer = tf.train.AdamOptimizer(alpha)
                 train_step = optimizer.minimize(loss)
@@ -319,7 +319,7 @@ def main(_):
                 
                 weights_history = []
                 
-                for step in range(150):
+                for step in range(100):
                     
                     time.sleep(0.1) # small delay
                                     
