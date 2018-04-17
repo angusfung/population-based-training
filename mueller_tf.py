@@ -176,18 +176,23 @@ def main(_):
                     A_3 * tf.exp(a_3 * tf.square((W[0]-x0_3)) + b_3 * (W[0]-x0_3) * (W[1]-y0_3) + c_3 * tf.square((W[1]-y0_3))) + \
                     A_4 * tf.exp(a_4 * tf.square((W[0]-x0_4)) + b_4 * (W[0]-x0_4) * (W[1]-y0_4) + c_4 * tf.square((W[1]-y0_4)))
                     
-                model = \
-                    A_1 * tf.exp(h[4] * tf.square((W[0]-x0_1)) + h[8] * (W[0]-x0_1) * (W[1]-y0_1) + c_1 * tf.square((W[1]-y0_1))) + \
-                    A_2 * tf.exp(h[5] * tf.square((W[0]-x0_2)) + h[9] * (W[0]-x0_2) * (W[1]-y0_2) + c_2 * tf.square((W[1]-y0_2))) + \
-                    A_3 * tf.exp(h[6] * tf.square((W[0]-x0_3)) + b_3 * (W[0]-x0_3) * (W[1]-y0_3) + c_3 * tf.square((W[1]-y0_3))) + \
-                    A_4 * tf.exp(h[7] * tf.square((W[0]-x0_4)) + b_4 * (W[0]-x0_4) * (W[1]-y0_4) + c_4 * tf.square((W[1]-y0_4)))
+                # model = \
+                #     A_1 * tf.exp(h[4] * tf.square((W[0]-x0_1)) + h[8] *  (W[0]-x0_1) * (W[1]-y0_1) + h[12] * tf.square((W[1]-y0_1))) + \
+                #     A_2 * tf.exp(h[5] * tf.square((W[0]-x0_2)) + h[9] *  (W[0]-x0_2) * (W[1]-y0_2) + h[13] * tf.square((W[1]-y0_2))) + \
+                #     A_3 * tf.exp(h[6] * tf.square((W[0]-x0_3)) + h[10] * (W[0]-x0_3) * (W[1]-y0_3) + h[14] * tf.square((W[1]-y0_3))) + \
+                #     A_4 * tf.exp(h[7] * tf.square((W[0]-x0_4)) + h[11] * (W[0]-x0_4) * (W[1]-y0_4) + h[15] * tf.square((W[1]-y0_4)))
+                
+                # taylor expansion (quadratic)
+                model_q = h[0] + h[1]*W[0] + h[2]*W[1] + h[3]*W[0]*W[1] + h[4]*W[0]**2 + h[5]*W[1]**2 
+                model_c = h[0] + h[1]*W[0] + h[2]*W[1] + h[3]*W[0]*W[1] + h[4]*W[0]**2 + h[5]*W[1]**2 + h[6]*W[0]**3 + \
+                    h[7]*W[0]**2*W[1] + h[8]*W[0]*W[1]**2 + h[9]*W[1]**3
+            
+                loss = model_c
                     
                 # mueller_constant = tf.stop_gradient(mueller_potential)
                 # loss = tf.square((mueller_constant-model))
-                
                 # loss = tf.square((mueller_potential-model))
                 # loss = mueller_potential
-                loss = model
                 
                 optimizer = tf.train.AdamOptimizer(alpha)
                 train_step = optimizer.minimize(loss)
