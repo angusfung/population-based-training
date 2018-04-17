@@ -96,7 +96,7 @@ def main(_):
                     initializer=tf.random_uniform(shape=[2], minval=[-2.,-0.5], maxval=[1.,2.])) 
                     
             # hyperparameters schedules 
-            h = tf.get_variable('h', initializer=tf.random_uniform(minval=-10., maxval=10., shape=[num_hyperparams]), trainable=False)
+            h = tf.get_variable('h', initializer=tf.random_uniform(minval=-50., maxval=50., shape=[num_hyperparams]), trainable=False)
             alpha = tf.get_variable('alpha', initializer=1e-1, trainable=False) # learning rate
             
             score = tf.get_variable('score', initializer=999., trainable=False)
@@ -182,12 +182,12 @@ def main(_):
                 #     A_3 * tf.exp(h[6] * tf.square((W[0]-x0_3)) + h[10] * (W[0]-x0_3) * (W[1]-y0_3) + h[14] * tf.square((W[1]-y0_3))) + \
                 #     A_4 * tf.exp(h[7] * tf.square((W[0]-x0_4)) + h[11] * (W[0]-x0_4) * (W[1]-y0_4) + h[15] * tf.square((W[1]-y0_4)))
                 
-                # taylor expansion (quadratic)
-                model_q = h[0] + h[1]*W[0] + h[2]*W[1] + h[3]*W[0]*W[1] + h[4]*W[0]**2 + h[5]*W[1]**2 
-                model_c = h[0] + h[1]*W[0] + h[2]*W[1] + h[3]*W[0]*W[1] + h[4]*W[0]**2 + h[5]*W[1]**2 + h[6]*W[0]**3 + \
-                    h[7]*W[0]**2*W[1] + h[8]*W[0]*W[1]**2 + h[9]*W[1]**3
+                # taylor expansion
+                model = h[0] + h[1]*W[0] + h[2]*W[1] + h[3]*W[0]*W[1] + h[4]*W[0]**2 + h[5]*W[1]**2 
+                # model= h[0] + h[1]*W[0] + h[2]*W[1] + h[3]*W[0]*W[1] + h[4]*W[0]**2 + h[5]*W[1]**2 + h[6]*W[0]**3 + \
+                #     h[7]*W[0]**2*W[1] + h[8]*W[0]*W[1]**2 + h[9]*W[1]**3
             
-                loss = model_c
+                loss = model
                     
                 # mueller_constant = tf.stop_gradient(mueller_potential)
                 # loss = tf.square((mueller_constant-model))
@@ -302,7 +302,7 @@ def main(_):
                     
                     # h_ops = h.assign(h + tf.random_normal(shape=[num_hyperparams]) * 0.01)
                     
-                    h_ops = h.assign(h * p_float* 1.2 + h * (1-p_float) * 0.8)
+                    h_ops = h.assign(h * p_float* 2 + h * (1-p_float) * 0.5)
                     
                     alpha_ops = alpha.assign(alpha * p_float* 1.2 + alpha * (1-p_float) * 0.8)
                     return h_ops, alpha_ops
@@ -334,7 +334,7 @@ def main(_):
                     # note: does updating P make sense here? step could potentially 
                     # lead to a viable theta in which case we dont want to exploit
                     
-                    mon_sess.run([do_update]) # update
+                    # mon_sess.run([do_update]) # update
                     
                     print("Worker {}, Step {}, h = {}, alpha = {}, W = {}, loss = {:0.6f}, score = {:0.6f}".format(
                                                                                                 FLAGS.task_index,
