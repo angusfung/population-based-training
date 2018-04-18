@@ -324,7 +324,7 @@ def main(_):
                 
                 weights_history = []
                 
-                for step in range(100):
+                for step in range(50):
                     
                     time.sleep(0.1) # small delay
                                     
@@ -334,7 +334,7 @@ def main(_):
                     # note: does updating P make sense here? step could potentially 
                     # lead to a viable theta in which case we dont want to exploit
                     
-                    # mon_sess.run([do_update]) # update
+                    mon_sess.run([do_update]) # update
                     
                     print("Worker {}, Step {}, h = {}, alpha = {}, W = {}, loss = {:0.6f}, score = {:0.6f}".format(
                                                                                                 FLAGS.task_index,
