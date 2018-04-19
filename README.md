@@ -46,6 +46,7 @@ tensorboard --logdir=~/Desktop/Scripts/population-based-training-nn/logs
 
 # TODO:
 * Try different exploration and exploitation methods (e.g truncation)
+* How does the learning rate decay in adam affect PBT's own learning rate exploration / exploitation? 
 * Bug: fix cases where workers end up with "nan" weights (due to aggressive initialization of hyperparameters e.g -50 to 50 or -20 to 20 for the `exp` model, the loss becomes a very large negative number leading to "nan" backprops). Since "nan" < `x` is always `False`, these workers are dead
  
  
