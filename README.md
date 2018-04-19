@@ -44,18 +44,27 @@ Population sizes of 1, 2, 4, 8, 16, and 32 were used, and the best performing wo
  * Generally, "lines" corresponding to larger population sizes are shorter; that's because the more workers, the faster it finds the optimal `theta` value
  
  ## Distributed Tensorflow
- 
+ ### Toy Example
  `pbtv2_tf.py` is a distributed tensorflow implementation of the toy example. To run, you may either start them manually on different terminals:
  
 ```
-python3 btv2_tf.py --ps_hosts=localhost:2222 --worker_hosts=localhost:2223,localhost:2224 --job_name=ps --task_index=0
-python3 btv2_tf.py --ps_hosts=localhost:2222 --worker_hosts=localhost:2223,localhost:2224 --job_name=worker --task_index=0
-python3 btv2_tf.py --ps_hosts=localhost:2222 --worker_hosts=localhost:2223,localhost:2224 --job_name=worker --task_index=1 
+python3 pbtv2_tf.py --ps_hosts=localhost:2222 --worker_hosts=localhost:2223,localhost:2224 --job_name=ps --task_index=0
+python3 pbtv2_tf.py --ps_hosts=localhost:2222 --worker_hosts=localhost:2223,localhost:2224 --job_name=worker --task_index=0
+python3 pbtv2_tf.py --ps_hosts=localhost:2222 --worker_hosts=localhost:2223,localhost:2224 --job_name=worker --task_index=1 
 ...
 ```
-
+or use the wrapper file `pbt_wrapper.py` where `size` is the population size:
 ```
-tensorboard --logdir=~/Desktop/Scripts/population-based-training-nn/logs
+python3 pbt_wrapper.py --size 20 --task toy
+```
+### Mueller Potential
+`mueller_tf.py` optimizes the mueller potential from (https://arxiv.org/pdf/1611.07657.pdf)[here].
+```
+python3 pbt_wrapper.py --size 40 --task mueller
+```
+#### Visualization
+```
+tensorboard --logdir=logs
 ```
 # TODO:
 * Try different exploration and exploitation methods (e.g truncation)
