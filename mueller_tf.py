@@ -198,6 +198,7 @@ def main(_):
                 train_step = optimizer.minimize(loss)
                 
                 # tf.summary.histogram('W', W)
+                tf.summary.scalar('alpha', alpha)
                 tf.summary.scalar('model', model)
                 tf.summary.scalar('meuller_potential', mueller_potential)
                 tf.summary.scalar('loss', loss)
