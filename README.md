@@ -58,7 +58,7 @@ or use the wrapper file `pbt_wrapper.py` where `size` is the population size:
 python3 pbt_wrapper.py --size 20 --task toy
 ```
 ### Mueller Potential
-`mueller_tf.py` optimizes the mueller potential from (https://arxiv.org/pdf/1611.07657.pdf)[here].
+`mueller_tf.py` optimizes the mueller potential from [here](https://arxiv.org/pdf/1611.07657.pdf).
 ```
 python3 pbt_wrapper.py --size 40 --task mueller
 ```
@@ -66,6 +66,13 @@ python3 pbt_wrapper.py --size 40 --task mueller
 ```
 tensorboard --logdir=logs
 ```
+Check out `tensorboard/logs` for my visualization plots.
+
+![alt text](https://github.com/angusfung/population-based-training/blob/master/gifs/default-exploit-taylor-10.gif)
+![alt text](https://github.com/angusfung/population-based-training/blob/master/plots/mueller-alpha-loss.PNG)
+![alt text](https://github.com/angusfung/population-based-training/blob/master/plots/mueller-potential.PNG)
+
+
 # TODO:
 * Try different exploration and exploitation methods (e.g truncation)
 * How does the learning rate decay in adam affect PBT's own learning rate exploration / exploitation? 
