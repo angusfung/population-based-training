@@ -45,10 +45,8 @@ tensorboard --logdir=~/Desktop/Scripts/population-based-training-nn/logs
 ```
 
 # TODO:
-regularization?
-stronger model?
-use PBT to learn the learning rate instead of hand-tuning alpha?
-use more training steps
+* Try different exploration and exploitation methods (e.g truncation)
+* Bug: fix cases where workers end up with "nan" weights (due to aggressive initialization of hyperparameters e.g -50 to 50 or -20 to 20 for the `exp` model, the loss becomes a very large negative number leading to "nan" backprops). Since "nan" < `x` is always `False`, these workers are dead
  
  
  
