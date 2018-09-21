@@ -4,7 +4,7 @@ from multiprocessing import Process
 from subprocess import Popen, PIPE
 
 
-def create_worker(type, ps_hosts, worker_hosts, task_index):
+def create_worker(type, task, ps_hosts, worker_hosts, task_index):
     if task == "mueller":
         p = Popen([
             'python3', 'mueller_tf.py', ps_hosts, worker_hosts, '--job_name={}'.format(type), '--task_index={}'.format(task_index)])
